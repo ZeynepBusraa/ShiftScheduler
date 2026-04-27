@@ -1,0 +1,26 @@
+@ShiftScheduler.Api_HostAddress = http://localhost:5000
+
+### Tüm Nöbetleri Listele (Şu an boş liste dönecek)
+GET {{ShiftScheduler.Api_HostAddress}}/api/shifts/list
+Accept: application/json
+
+###
+
+### ID'ye göre Nöbet Getir (Şu an mock data dönecek)
+GET {{ShiftScheduler.Api_HostAddress}}/api/shifts/1
+Accept: application/json
+
+###
+
+### Yeni Nöbet Kaydet (Şu an sadece başarılı mesajı dönecek)
+POST {{ShiftScheduler.Api_HostAddress}}/api/shifts/save
+Content-Type: application/json
+Accept: application/json
+
+{
+  "id": 0,
+  "userId": 1,
+  "date": "2026-05-01T08:00:00Z",
+  "shiftType": 1,
+  "isApproved": false
+}

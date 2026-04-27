@@ -1,0 +1,33 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using ShiftScheduler.Application.Common;
+using ShiftScheduler.Application.DTOs;
+using ShiftScheduler.Application.Handlers.Shifts;
+using ShiftScheduler.Domain.Enums;
+
+namespace ShiftScheduler.Application.Services;
+
+public class ShiftService(
+    FindShiftHandler findHandler,
+    ListShiftsHandler listHandler,
+    SaveShiftHandler saveHandler) : IShiftService
+{
+    private readonly FindShiftHandler _findHandler = findHandler;
+    private readonly ListShiftsHandler _listHandler = listHandler;
+    private readonly SaveShiftHandler _saveHandler = saveHandler;
+
+    public Task<ResponsePayload<ShiftDto>> FindAsync(int id)
+    {
+        return _findHandler.HandleAsync(id);
+    }
+
+    public Task<ResponsePayload<List<ShiftDto>>> ListAsync(Role userRole, int? departmentId)
+    {
+        return _listHandler.HandleAsync(userRole, departmentId);
+    }
+
+    public Task<ResponsePayload<ShiftDto>> SaveAsync(ShiftDto dto)
+    {
+        return _saveHandler.HandleAsync(dto);
+    }
+}

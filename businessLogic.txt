@@ -1,0 +1,350 @@
+ShiftScheduler 
+SRS 
+Tarih: 05.04.2026 
+Hazırlayanlar: 
+Hüseyin Fidan / 22118080002 
+Mert Yüce Daşbacak / 22118080040 
+Zeynep Büşra Yılmaz / 22118080076 
+1 
+Revizyonlar: 
+Versiyon 
+Tarih 
+Hazırlayan 
+Açıklama 
+1.0 
+Durum 
+05.04.2026 
+Proje Ekibi 
+SRS 
+Dokümanının 
+İlk Versiyonu 
+Onaylandı 
+2 
+   
+ 
+  3 
+ 
+ 
+Table of Contents: 
+YAZILIM GEREKSİNİM SPESİFİKASYONU (SRS)........................................................... 4 
+1. INTRODUCTION ............................................................................................... 4 
+1.1 Product Overview ........................................................................................ 4 
+2. GEREKSİNİMLER .............................................................................................. 4 
+2.1 Gerekli Durum ve Modlar .............................................................................. 4 
+2.1.1 İşletim Modları ...................................................................................... 4 
+2.2 YKE Fonksiyonel Gereksinimleri .................................................................... 5 
+2.2.1 Kullanıcı Yönetimi, Kimlik Doğrulama ve Yetkilendirme Fonksiyonları (FR
+01) ................................................................................................................ 5 
+2.2.2 Karar Destek ve Nöbet Dağıtım Algoritması Fonksiyonları (FR-02) .............. 6 
+2.2.3 Görselleştirme, Takvim ve Talep Yönetimi Fonksiyonları (FR-03) ................ 7 
+2.3 YKE Dış Arayüz Gereksinimleri ...................................................................... 7 
+2.3.1 Arayüz Tanımlaması ve Diyagramları ....................................................... 7 
+2.3.2 E-Posta Sunucusu Arayüzü (INT-SMTP-01) ............................................... 7 
+2.3.3 Hastane Bilgi Yönetim Sistemi Entegrasyonu (INT-HBYS-02) (Opsiyonel) .... 8 
+2.4 YKE Dahili Arayüz Gereksinimleri .................................................................. 8 
+2.5 YKE Dahili Veri Gereksinimleri (Database Requirements) ................................ 8 
+2.6 Uyarlama Gereksinimleri .............................................................................. 9 
+2.7 Emniyet Gereksinimleri .............................................................................. 10 
+2.8 Güvenlik ve Gizlilik Gereksinimleri .............................................................. 10 
+2.9 YKE Ortam Gereksinimleri .......................................................................... 10 
+2.10 Bilgisayar Kaynak Gereksinimleri............................................................... 11 
+2.10.1 Bilgisayar Donanım Gereksinimleri ...................................................... 11 
+2.10.2 Bilgisayar Donanımı Kaynak Kullanımı Gereksinimleri ........................... 11 
+2.10.3 Bilgisayar Yazılım Gereksinimleri ......................................................... 11 
+2.10.4 Bilgisayar İletişim Gereksinimleri ........................................................ 11 
+2.11 Yazılım Kalite Faktörleri ............................................................................ 12 
+2.12 Tasarım ve Uygulama Kısıtlamaları ............................................................ 12 
+2.13 Personelle İlgili Gereksinimler................................................................... 12 
+   
+ 
+  4 
+ 
+2.14 Eğitimle İlgili Gereksinimler ...................................................................... 12 
+2.15 Lojistikle İlgili Gereksinimler ..................................................................... 13 
+2.16 Diğer Gereksinimler ................................................................................. 13 
+2.17 Ambalajlama Gereksinimleri .................................................................... 13 
+2.18 Gereksinimlerin Önceliği ve Kritikliği .......................................................... 13 
+3. ADDITIONAL MATERIAL ................................................................................... 14 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+YAZILIM GEREKSİNİM SPESİFİKASYONU 
+(SRS) 
+1. INTRODUCTION 
+1.1 Product Overview 
+Klinik Nöbet Otomasyonu (ShiftScheduler), hastanelerin yoğun iş temposunda 
+asistan doktorların nöbet çizelgelerini adil, çakışmasız ve şeffaf bir şekilde 
+yönetmek için geliştirilmiş web tabanlı bir sistemdir. Manuel süreçlerdeki 
+hataları minimize etmeyi ve klinik yönetimini dijitalleştirmeyi hedefler. 
+2. GEREKSİNİMLER 
+2.1 Gerekli Durum ve Modlar 
+2.1.1 İşletim Modları 
+Normal (Aktif) Mod: Sistemin standart çalışma modudur. Başhekimin ve 
+asistan doktorların giriş yapıp günlük işlemlerini (nöbet atama, takvim 
+görüntüleme, talep oluşturma ve onaylama) yürüttüğü ana durumdur. Tüm 
+veritabanı okuma ve yazma işlemleri aktiftir. 
+Bakım ve Yedekleme Modu: Sisteme yeni kuralların (nöbet yönetmeliği 
+güncellemeleri, tatil günleri) girildiği veya veritabanı yedeklemelerinin 
+yapıldığı durumdur. Bu modda asistan doktorların sisteme girişi geçici olarak 
+askıya alınır ve sadece "Sistem Bakımda" uyarısı gösterilir. Sadece Başhekim 
+ve Sistem Yöneticisi erişim sağlayabilir. 
+Salt Okunur Mod: YKE'nin arka planda ağır bir işlem yaptığı (örneğin aylık 
+nöbet dağıtım algoritmasının çalıştırıldığı ve hesaplamaların yapıldığı) süre 
+zarfında devreye giren moddur. Kullanıcılar takvimi görebilir ancak değişiklik 
+veya talep yapamazlar. 
+5 
+2.2 YKE Fonksiyonel Gereksinimleri 
+2.2.1 Kullanıcı Yönetimi, Kimlik Doğrulama ve Yetkilendirme 
+Fonksiyonları (FR-01)  
+Bu fonksiyon grubunun temel amacı sisteme giriş yapacak aktörlerin 
+ayrıştırılmasıdır. 
+FR-01.1: YKE, "Başhekim" ve "Asistan Doktor" olmak üzere iki farklı rolü 
+ayırt etmeli ve yetkilendirmelidir. 
+FR-01.2: Sistem, kullanıcı girişlerinde (Login) e-posta ve şifre doğrulaması 
+yapmalıdır. Hatalı şifre denemelerinde (ardışık 5 hata) hesap 15 dakika süreyle 
+kilitlenmelidir. 
+6 
+FR-01.3: Başhekim, sisteme yeni bir asistan doktor ekleyebilmeli, mevcut 
+asistanların kıdem yıllarını güncelleyebilmeli veya ilişiği kesilen doktorların 
+hesabını pasife alabilmelidir. 
+FR-01.4: Sistemde şifremi unuttum işlevi bulunmalı, kullanıcının kayıtlı e-posta 
+adresine tek kullanımlık bir şifre sıfırlama bağlantısı gönderilmelidir. 
+2.2.2 Karar Destek ve Nöbet Dağıtım Algoritması Fonksiyonları 
+(FR-02)  
+Projenin temel iş mantığını oluşturan kurallar dizisidir. 
+• FR-02.1: YKE, nöbet dağıtımını başlatmadan önce o ayki resmî tatilleri 
+ve önceden sisteme girilmiş asistan izin günlerini takvimden 
+filtrelemelidir. 
+• FR-02.2 (Sert Kısıt - Hard Constraint): Algoritma, hiçbir koşulda bir 
+asistan doktora üst üste iki gün nöbet ataması yapmamalıdır. 
+7 
+• FR-02.3 (Sert Kısıt - Hard Constraint): Algoritma, doktorun izinli 
+raporlu olduğu günlere nöbet atamamalıdır. 
+• FR-02.4 (Esnek Kısıt - Soft Constraint): YKE, asistan doktorların 
+kıdem yıllarını ve önceki nöbet sayılarını baz alarak adil bir nöbet 
+puanlaması hesaplamalıdır. Hafta sonu tutulan nöbetlerin katsayısı hafta 
+içi nöbetlerinden yüksek olmalıdır. 
+• FR-02.5: Sistem, algoritmanın atayamadığı (çıkmaza girdiği) boş kalan 
+günler için başhekime uyarı vermeli ve manuel atama yapabilmesi için 
+arayüz sunmalıdır. 
+2.2.3 Görselleştirme, Takvim ve Talep Yönetimi Fonksiyonları (FR
+03)  
+Kullanıcı deneyimini ilgilendiren özelliklerdir. 
+FR-03.1: YKE, nöbetleri aylık ve haftalık takvim arayüzü üzerinde 
+listelemelidir. 
+FR-03.2: Takvim üzerinde her asistanın nöbeti, kullanıcının kıdemine göre 
+farklı renk kodlarıyla (örn: Kıdemli: Mavi, Çömez: Sarı) gösterilmelidir. 
+FR-03.3: Asistan doktorlar kendi aralarında nöbet değişim talebi 
+oluşturabilmelidir. Talebi oluşturan kişi, takas yapmak istediği doktoru ve tarihi 
+seçmelidir. 
+FR-03.4: Değişim talebi öncelikle karşı taraftaki asistana iletilmeli, o kabul 
+ettikten sonra son onay için Başhekimin paneline düşmelidir. 
+FR-03.5: Başhekim tarafından onaylanan takas işlemi anında veritabanına 
+işlenmeli ve takvim güncellenmelidir. 
+2.3 YKE Dış Arayüz Gereksinimleri 
+2.3.1 Arayüz Tanımlaması ve Diyagramları  
+YKE, hastane içindeki diğer varlıklarla veri paylaşımı yapacaktır. Sistem kendi 
+içerisindeki işlemlerin dış dünyayla entegrasyonu için iki temel harici arayüz 
+kullanacaktır. 
+Kullanıcı Arayüzü Özellikleri: Sistem; doktorların nöbetlerini kolayca takip 
+edebileceği interaktif bir takvim görünümü, yönetim paneli ve talep oluşturma 
+8 
+pencerelerinden oluşan grafiksel kullanıcı arayüzlerine (GUI) sahiptir. Tüm 
+arayüzler mobil cihazlarla uyumlu (responsive) olarak tasarlanmıştır. 
+2.3.2 E-Posta Sunucusu Arayüzü (INT-SMTP-01)  
+Bu arayüz, sistemdeki bildirimlerin kullanıcılara iletilmesinden sorumludur. 
+Öncelik: Düşük/Orta öncelikli arka plan işlemi. 
+Arayüz Tipi: Gerçek zamanlı olmayan, asenkron bildirim gönderimi. 
+Veri Elemanları: Alıcı Adresi (string), Konu (string), Mesaj İçeriği (HTML 
+string). 
+İletişim Yöntemi: TCP/IP üzerinden 587 (TLS) portu kullanılarak veri transferi 
+sağlanacaktır. 
+Protokol: Basit Posta Aktarım Protokolü (SMTP) kullanılacaktır. 
+2.3.3 Hastane Bilgi Yönetim Sistemi Entegrasyonu (INT-HBYS-02) 
+(Opsiyonel)  
+Gelecekteki genişlemeler için YKE'nin hastanedeki doktor kayıtlarını (izin, 
+rapor durumları) otomatik çekebilmesi için tasarlanmış harici okuma 
+arayüzüdür. 
+Öncelik: Yüksek (Veri senkronizasyonu). 
+Arayüz Tipi: REST tabanlı Web Servis (JSON). 
+Veri Grubu Yapısı: DoktorSicilNo, İzinBaslangic, İzinBitis tarihleri. 
+2.4 YKE Dahili Arayüz Gereksinimleri 
+YKE, İstemci (Frontend) ve Sunucu (Backend) olarak iki temel katmana 
+ayrılmıştır. Bu iki katman arasındaki dahili iletişim HTTP protokolü üzerinden 
+RESTful mimari prensipleriyle sağlanacaktır. 
+İstemci katmanı kullanıcı arayüzü eylemlerini (buton tıklamaları, form 
+gönderimleri) yakalar. 
+Backend API katmanına GET /api/shifts, POST /api/requests, PUT 
+/api/users/{id} gibi rotalarla JSON formatında veri paketleri gönderir. 
+API, iş kurallarını denetleyip veritabanına kaydeder ve İstemciye HTTP 200 
+(Başarılı) veya HTTP 400 (Kötü İstek) gibi durum kodları döndürür. 
+9 
+2.5 YKE Dahili Veri Gereksinimleri (Database 
+Requirements) 
+Bu paragraf, YKE'nin dahili verilerine empoze edilen gereksinimleri belirtir. 
+Sistem Microsoft SQL Server veritabanı yönetim sistemini kullanacaktır. Temel 
+veritabanı mimarisi aşağıdaki tablolarla yapılandırılmıştır: 
+Tablo 1: Kullanıcılar (Users) 
+UserID (Primary Key, Integer) 
+Email (Nvarchar(100), Unique) 
+PasswordHash (Nvarchar(255)) 
+RoleID (Integer) - 1: Başhekim, 2: Asistan 
+Seniority (Integer) - Kıdem Yılı 
+Tablo 2: Nöbetler (Shifts) 
+ShiftID (Primary Key, Integer) 
+DoctorID (Foreign Key, Integer) 
+ShiftDate (Date) 
+ShiftType (Integer) - 1: Hafta İçi, 2: Hafta Sonu, 3: Tatil 
+IsApproved (Boolean) 
+Tablo 3: Değişim Talepleri (ShiftRequests) 
+RequestID (Primary Key, Integer) 
+FromDoctorID (Foreign Key, Integer) 
+ToDoctorID (Foreign Key, Integer) 
+TargetShiftID (Foreign Key, Integer) 
+Status (Integer) - 0: Bekliyor, 1: Asistan Onayladı, 2: Başhekim Onayladı, 3: 
+Reddedildi. 
+10 
+2.6 Uyarlama Gereksinimleri 
+YKE, farklı kliniklerin farklı kurallarına uyum sağlayabilmesi için sert kodlama 
+(hard-coding) yerine dinamik parametrelere sahip olmalıdır. Sistem Ayarları 
+sekmesi üzerinden yetkili kullanıcı şu değerleri uyarlayabilmelidir: 
+Maksimum ardışık nöbet tutulabilecek gün sayısı (Standart: 1). 
+Ay içerisindeki maksimum nöbet sayısı üst limiti (Standart: 10). 
+Hafta sonu tutulan nöbetlerin, hafta içi nöbetlerine oranla puan katsayısı 
+(Standart: 1.5). 
+2.7 Emniyet Gereksinimleri 
+Personel sağlığını korumak, tıbbi hataları (yorgunluğa bağlı malpraktis) 
+önlemek ve olası istenmeyen zararları en aza indirmekle ilgili YKE 
+gereksinimleri şunlardır: 
+SAFE-01: YKE, insan hatasıyla bir asistanın 24 saatten fazla kesintisiz 
+görevlendirilmesini (manuel atama menüsünde dahi olsa) "Riskli İşlem" uyarısı 
+ile bloke etmeli, ancak "Acil Durum Gerekçesi" girilmesi şartıyla aşılabilmesine 
+olanak tanımalıdır. 
+SAFE-02: Sistem, nöbet değişimi yapan doktorların son 48 saat içindeki 
+çalışma durumlarını kontrol ederek yorgunluk seviyesini analiz eden bir ön 
+kontrol katmanından geçirmelidir. 
+2.8 Güvenlik ve Gizlilik Gereksinimleri 
+Güvenliğin ve gizliliğin bakımı ile ilgili YKE gereksinimleri aşağıda 
+tanımlanmıştır. 
+SEC-01 Veri Güvenliği: Asistan doktor şifreleri veritabanında kesinlikle düz 
+metin (plain text) olarak saklanmayacak, modern standart olan SHA-256 veya 
+Bcrypt algoritmaları ile tuzlanarak hashlenecektir. 
+SEC-02 Erişim Denetimi: Asistan doktorlar, sadece dahil oldukları departmanın 
+(örn. Göğüs Cerrahisi) takvimini görebilir. Başka departmanların listesine 
+erişemezler. 
+SEC-03 Oturum Yönetimi: İstemci tarafında oturumlar JWT (JSON Web 
+Token) kullanılarak yönetilecektir. 30 dakika boyunca işlem yapılmayan 
+oturumlar güvenlik gereği otomatik olarak sonlandırılacaktır. 
+11 
+SEC-04 Loglama (Denetim İzi): Nöbetlerin silinmesi, değiştirilmesi veya yeni 
+doktor eklenmesi gibi tüm kritik (CRUD) işlemler; işlemi yapanın IP adresi, 
+UserID'si ve zaman damgasıyla birlikte AuditLogs tablosuna kaydedilecektir. 
+2.9 YKE Ortam Gereksinimleri 
+YKE, web tabanlı bir otomasyon çözümü olduğu için işletim sistemi bağımsız 
+olarak çalışması gereken ortam koşulları esnektir. -Sunucu Ortamı: Uygulama, IIS (Internet Information Services) sunucusunda 
+Windows Server ortamında veya Kestrel üzerinde bir Linux/Ubuntu 
+dağıtımında çalışabilecek şekilde yapılandırılmalıdır. -İstemci Ortamı: Son kullanıcılar, HTML5, CSS3 ve modern JavaScript 
+motorlarını destekleyen standart web tarayıcılarından (Google Chrome, 
+Microsoft Edge, Mozilla Firefox veya Apple Safari) herhangi bir ek yazılım 
+veya eklenti indirmeksizin sisteme erişebilmelidir. 
+2.10 Bilgisayar Kaynak Gereksinimleri 
+2.10.1 Bilgisayar Donanım Gereksinimleri  -Sunucu Tarafı (Asgari): Intel Xeon veya eşdeğeri 2.4 GHz hızında minimum 2 
+Çekirdekli İşlemci. İşletim sistemi ve uygulama için minimum 4 GB RAM. -İstemci Tarafı: 1366x768 piksel veya üzeri ekran çözünürlüğüne sahip 
+herhangi bir masaüstü/dizüstü bilgisayar veya akıllı telefon. 
+2.10.2 Bilgisayar Donanımı Kaynak Kullanımı Gereksinimleri  -YKE, aylık algoritma dağıtımını yaparken sunucu işlemci kullanımının en fazla 
+%60'ına kadar kaynak tüketmesine izin verilerek diğer hastane servislerinin 
+aksaması önlenmelidir. -Veritabanı boyutunun her bir çalışma yılı için loglar dahil yaklaşık 50 MB artış 
+göstereceği öngörülmektedir, bu sebeple başlangıçta 5 GB bir yardımcı saklama 
+(disk) tahsisi yeterlidir. 
+2.10.3 Bilgisayar Yazılım Gereksinimleri  
+YKE'nin geliştirilmesi, çalıştırılması ve derlenmesi için aşağıdaki yazılım 
+yığınları kullanılacaktır: -Çerçeve (Framework): Microsoft .NET 8.0 SDK. 
+12 
+-Veritabanı Yönetim Sistemi: Microsoft SQL Server 2019 veya daha güncel bir 
+sürümü. -Geliştirme Ortamı (IDE): Visual Studio 2022. -ORM (Object-Relational Mapping): Entity Framework Core. 
+2.10.4 Bilgisayar İletişim Gereksinimleri  
+İstemci ile sunucu arasındaki tüm veri akışı HTTP/HTTPS ağ protokolleri 
+üzerinden gerçekleştirilecektir. 
+Takvim verisinin periyodik yüklenme boyutu küçük olduğu için (sayfa başı 
+ortalama 20-50 KB JSON verisi) asgari 2 Mbps veri transfer oranına sahip bir 
+ağ genişliği (bandwidth) sistemin sorunsuz çalışması için yeterlidir. 
+2.11 Yazılım Kalite Faktörleri 
+Sözleşmede belirtilen yazılım kalite faktörleriyle ilgili YKE gereksinimleri 
+aşağıdadır: -Güvenilirlik (Reliability): Sistem algoritmik hesaplamalarda %100 doğru ve 
+tutarlı çalışmalı, çökmeler arası ortalama süre 720 saatin üzerinde olmalıdır. -Kullanılabilirlik (Usability): Eğitim almamış bir asistan doktor, YKE sistemine 
+ilk giriş yaptığında bir nöbet değişim talebini en fazla 6 fare tıklaması ile 
+tamamlayabilmelidir. -Taşınabilirlik (Portability): .NET Core yapısı sayesinde yazılım, ilerleyen 
+süreçlerde Windows tabanlı sunuculardan çıkarılıp Linux tabanlı Docker 
+konteynerlerine kolayca taşınabilmelidir. -İdame Edilebilirlik (Maintainability): Yazılım kodları Spagetti kod 
+mantığından uzak, Katmanlı Mimari (N-Tier Architecture) standartlarında, 
+açıklayıcı yorum satırları içerecek şekilde modüler tasarlanmalıdır. 
+2.12 Tasarım ve Uygulama Kısıtlamaları 
+YKE'nin tasarımı ve gerçekleştirimini kısıtlayan gereksinimler şunlardır: -Projenin geliştirilme süreci, 12 hafta ile kısıtlıdır. -Arayüz tasarımında "Mobil Uyumluluk" prensiplerine uyulması zorunludur. 
+2.13 Personelle İlgili Gereksinimler 
+YKE'yi kullanacak ve destekleyecek personelle ilgili gereksinimler aşağıdadır: 
+13 
+-Sistem, bir kliniğin tüm kadrosunu destekleyecek şekilde aynı anda (eşzamanlı) 
+en az 25 kullanıcının oturum açıp işlem yapabilmesine olanak tanımalıdır. -İnsan Faktörleri Mühendisliği: Sağlık çalışanlarının yorucu mesaileri göz 
+önünde bulundurularak, arayüzdeki renk seçimlerinde göz yormayan pastel 
+tonlar kullanılmalıdır. Kırmızı renk sadece hata ve kritik uyarı mesajları için 
+rezerve edilmelidir. Nöbet onay butonlarının fiziksel yerleşimi, yanlışlıkla 
+basılmayı önleyecek şekilde ekranda diğer butonlardan ayrı tutulmalıdır. 
+2.14 Eğitimle İlgili Gereksinimler 
+YKE'nin son kullanıcılar tarafından benimsenmesini kolaylaştırmak için 
+eğitimle ilgili gereksinimler belirtilmiştir. -Sistem devreye alınmadan önce, Başhekimlik birimine sistemdeki "Ayarlar ve 
+Onaylama" menülerinin kullanımını gösteren 1 saatlik kısa bir uygulamalı 
+oryantasyon verilecektir. -Asistan doktorlar için yazılımın "Yardım" sekmesine entegre edilmiş, ekran 
+görüntüleriyle desteklenen "Sıkça Sorulan Sorular" ve "Adım Adım Kullanım 
+Kılavuzu" eklenecektir. 
+2.15 Lojistikle İlgili Gereksinimler 
+Lojistik hususlarla ilgili YKE gereksinimleri aşağıdadır. -YKE, donanım satın alımını engellemek amacıyla hastanenin Bilgi İşlem 
+Merkezi'nde halihazırda bulunan mevcut sanal sunucular üzerine 
+konumlandırılacaktır. -Olası felaket durumlarına karşı sistem, her gece saat 03.00'te veritabanının tam 
+yedeğini otomatik olarak alacak ve ağ üzerindeki güvenli bir depolama birimine 
+kopyalayacaktır. 
+2.16 Diğer Gereksinimler 
+Daha önce değinilmeyen yasal ve lisanslama konularındaki gereksinimler: - Projede kullanılan 3. parti kütüphaneler ve açık kaynak kodlu eklentilerin 
+tümü (örn. Bootstrap, jQuery vb.) MIT veya Apache 2.0 lisanslarına sahip 
+olmalı, ticari bir problem teşkil etmemelidir. 
+2.17 Ambalajlama Gereksinimleri 
+YKE'nin teslimat formatı ve dağıtım yöntemi aşağıda belirtilmiştir: 
+14 
+- Uygulama fiziksel bir donanım üzerinden teslim edilmeyecektir. - Yazılımın kaynak kodları, tüm sürümleri içerecek şekilde GitHub / GitLab 
+gibi merkezi bir versiyon kontrol deposu üzerinden bağlantı verilerek teslim 
+edilecektir. - Çalıştırılabilir versiyon, tüm bağımlılıkları ile bir .zip arşivi olarak 
+paketlenerek ilgili kişinin değerlendirmesine sunulacaktır. 
+2.18 Gereksinimlerin Önceliği ve Kritikliği 
+Bu spesifikasyondaki gereksinimlerin yazılım geliştirme döngüsündeki göreceli 
+önemi ve ağırlıkları "MoSCoW" analizi temel alınarak dört seviyeye ayrılmıştır: 
+1. En Yüksek Kritiklik: Nöbet atama algoritmasının çakışmaları engelleme 
+kuralı (Sert Kısıtlar) ve Role-Based kimlik doğrulama. Bunlar olmadan 
+sistemin bir amacı kalmaz. 
+2. Yüksek Öncelik: Asistanların birbirleriyle nöbet değişimi talep 
+edebilmesi ve Başhekim onay modülü. 
+3. Orta Öncelik: E-posta ile bildirim gönderme özelliği. Yetişmemesi 
+durumunda sistem işleyişi durmaz, ancak kullanım kolaylığı düşer. 
+4. Düşük Öncelik (Gelecek Versiyonlar): Mobil native uygulama (App 
+Store / Play Store). Bu sürümde sadece tarayıcı üzerinden erişim (Web) 
+hedeflenmektedir. 
+3. ADDITIONAL MATERIAL 
+15 

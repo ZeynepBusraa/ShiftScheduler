@@ -1,0 +1,45 @@
+## Ignore Visual Studio artifacts
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Ignore build output
+[Bb]in/
+[Oo]bj/
+out/
+publish/
+
+## Ignore NuGet packages
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Ignore user-specific settings
+*.rsuser
+.idea/
+
+## Ignore runtime and logs
+*.log
+*.trx
+TestResults/
+
+## Ignore OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## =============================================
+## SENSITIVE: Gerçek bağlantı bilgilerini içerir
+## =============================================
+## Bunlar GİTHUB'A GİTMEMELİ — appsettings.Example.json'u kullan!
+src/ShiftScheduler.Api/appsettings.json
+src/ShiftScheduler.Api/appsettings.Development.json
+
+## Ignore EF migration snapshots that can be regenerated (optional)
+## Migrations klasörünü paylaşmak istersen bu satırı sil
+# **/Migrations/

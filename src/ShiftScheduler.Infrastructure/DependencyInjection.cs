@@ -2,6 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ShiftScheduler.Infrastructure.Persistence;
+using ShiftScheduler.Application.Repositories; // Arayüzler (Interface) için
+using ShiftScheduler.Infrastructure.Repositories; // Gerçek sınıflar (Implementation) için
+using ShiftScheduler.Infrastructure.Authentication;
 
 namespace ShiftScheduler.Infrastructure;
 
@@ -12,12 +15,16 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
             
-        services.AddScoped<ShiftScheduler.Application.Services.ITokenService,            ShiftScheduler.Infrastructure.Authentication.TokenService>();
-        services.AddScoped<ShiftScheduler.Application.Repositories.IShiftRepository,        ShiftScheduler.Infrastructure.Repositories.ShiftRepository>();
-        services.AddScoped<ShiftScheduler.Application.Repositories.IUserRepository,         ShiftScheduler.Infrastructure.Repositories.UserRepository>();
-        services.AddScoped<ShiftScheduler.Application.Repositories.IShiftRequestRepository, ShiftScheduler.Infrastructure.Repositories.ShiftRequestRepository>();
+        // Token Servisi
+        services.AddScoped<ShiftScheduler.Application.Services.ITokenService, TokenService>();
+
+        // Repository Kayıtları
+        services.AddScoped<IShiftRepository, ShiftRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        
+        // KRİTİK: İzin Talepleri Repositoriesi (Tek satır yeterli)
+        services.AddScoped<IShiftRequestRepository, ShiftRequestRepository>();
             
         return services;
     }
 }
-

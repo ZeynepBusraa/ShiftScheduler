@@ -12,10 +12,12 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
             
-        services.AddScoped<ShiftScheduler.Application.Services.ITokenService, ShiftScheduler.Infrastructure.Authentication.TokenService>();
-        services.AddScoped<ShiftScheduler.Application.Repositories.IShiftRepository, ShiftScheduler.Infrastructure.Repositories.ShiftRepository>();
-        services.AddScoped<ShiftScheduler.Application.Repositories.IUserRepository, ShiftScheduler.Infrastructure.Repositories.UserRepository>();
+        services.AddScoped<ShiftScheduler.Application.Services.ITokenService,            ShiftScheduler.Infrastructure.Authentication.TokenService>();
+        services.AddScoped<ShiftScheduler.Application.Repositories.IShiftRepository,        ShiftScheduler.Infrastructure.Repositories.ShiftRepository>();
+        services.AddScoped<ShiftScheduler.Application.Repositories.IUserRepository,         ShiftScheduler.Infrastructure.Repositories.UserRepository>();
+        services.AddScoped<ShiftScheduler.Application.Repositories.IShiftRequestRepository, ShiftScheduler.Infrastructure.Repositories.ShiftRequestRepository>();
             
         return services;
     }
 }
+

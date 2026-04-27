@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using ShiftScheduler.Application.Handlers.ShiftRequests;
 using ShiftScheduler.Application.Handlers.Shifts;
 using ShiftScheduler.Application.Mappers;
 using ShiftScheduler.Application.Services;
@@ -18,6 +19,13 @@ public static class DependencyInjection
         services.AddScoped<FindShiftHandler>();
         services.AddScoped<ListShiftsHandler>();
         services.AddScoped<SaveShiftHandler>();
+        services.AddScoped<GenerateShiftsHandler>();   // FR-02 algoritması
+
+        // Handlers - ShiftRequests
+        services.AddScoped<CreateShiftRequestHandler>();
+        services.AddScoped<ListShiftRequestsHandler>();
+        services.AddScoped<RespondToShiftRequestHandler>();
+        services.AddScoped<ApproveShiftRequestHandler>();
 
         // Handlers - Users & Auth
         services.AddScoped<ShiftScheduler.Application.Handlers.Auth.LoginUserHandler>();
@@ -32,3 +40,4 @@ public static class DependencyInjection
         return services;
     }
 }
+

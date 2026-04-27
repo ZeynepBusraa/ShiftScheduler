@@ -10,24 +10,24 @@ namespace ShiftScheduler.Application.Services;
 public class ShiftService(
     FindShiftHandler findHandler,
     ListShiftsHandler listHandler,
-    SaveShiftHandler saveHandler) : IShiftService
+    SaveShiftHandler saveHandler,
+    GenerateShiftsHandler generateHandler) : IShiftService
 {
     private readonly FindShiftHandler _findHandler = findHandler;
     private readonly ListShiftsHandler _listHandler = listHandler;
     private readonly SaveShiftHandler _saveHandler = saveHandler;
+    private readonly GenerateShiftsHandler _generateHandler = generateHandler;
 
     public Task<ResponsePayload<ShiftDto>> FindAsync(int id)
-    {
-        return _findHandler.HandleAsync(id);
-    }
+        => _findHandler.HandleAsync(id);
 
     public Task<ResponsePayload<List<ShiftDto>>> ListAsync(Role userRole, int? departmentId)
-    {
-        return _listHandler.HandleAsync(userRole, departmentId);
-    }
+        => _listHandler.HandleAsync(userRole, departmentId);
 
     public Task<ResponsePayload<ShiftDto>> SaveAsync(ShiftDto dto)
-    {
-        return _saveHandler.HandleAsync(dto);
-    }
+        => _saveHandler.HandleAsync(dto);
+
+    public Task<ResponsePayload<GenerateShiftsResult>> GenerateAsync(GenerateShiftsRequest request)
+        => _generateHandler.HandleAsync(request);
 }
+

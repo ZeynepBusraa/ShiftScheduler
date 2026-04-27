@@ -44,10 +44,10 @@ public class ShiftsController(IShiftService shiftService) : ControllerBase
     }
 
     [HttpPost("generate")]
-    [Authorize(Roles = "Uzman, Asistan")]
-    public async Task<ResponsePayload<bool>> GenerateList()
+    [Authorize(Roles = "Bashekim, Admin")]
+    public async Task<ResponsePayload<GenerateShiftsResult>> GenerateList([FromBody] GenerateShiftsRequest request)
     {
-        // TODO: En kıdemsiz uzman veya en kıdemli asistan kontrolü burada veya Handler içerisinde yapılacak.
-        return await Task.FromResult(Application.Common.Response.Ok(true));
+        // FR-02: Nöbet atama algoritmasını çalıştır
+        return await _shiftService.GenerateAsync(request);
     }
 }

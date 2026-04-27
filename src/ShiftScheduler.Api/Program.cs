@@ -58,7 +58,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+app.UseAuthentication(); // JWT token doğrulama
+app.UseAuthorization();  // Rol/politika kontrolü
 app.MapControllers();
 
 app.Run();

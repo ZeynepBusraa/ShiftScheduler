@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ShiftScheduler.Domain.Enums;
 
@@ -14,5 +15,10 @@ public class User
     public int? DepartmentId { get; set; }
     public Department? Department { get; set; }
 
+    // FR-01.2: Hesap kilitleme
+    public int FailedLoginCount { get; set; } = 0;
+    public DateTime? LockoutEnd { get; set; }
+
     public ICollection<Shift> Shifts { get; set; } = new List<Shift>();
 }
+

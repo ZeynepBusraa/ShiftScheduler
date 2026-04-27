@@ -12,4 +12,5 @@ public interface IShiftService
     Task<ResponsePayload<ShiftDto>> FindAsync(int id);
     Task<ResponsePayload<List<ShiftDto>>> ListAsync(Role userRole, int? departmentId);
     Task<ResponsePayload<ShiftDto>> SaveAsync(ShiftDto dto);
+    Task<ResponsePayload<GenerateShiftsResult>> GenerateAsync(GenerateShiftsRequest request);
 }

@@ -9,13 +9,14 @@ public class ShiftRequestDtoMapper
 {
     public ShiftRequestDto Map(ShiftRequest entity)
     {
-        return new ShiftRequestDto(
-            entity.Id,
-            entity.RequesterId,
-            entity.TargetDoctorId,
-            entity.ShiftId,
-            entity.Status
-        );
+        return new ShiftRequestDto
+        {
+            Id             = entity.Id,
+            RequesterId    = entity.RequesterId,
+            TargetDoctorId = entity.TargetDoctorId,
+            ShiftId        = entity.ShiftId,
+            Status         = (int)entity.Status
+        };
     }
 
     public List<ShiftRequestDto> MapList(IEnumerable<ShiftRequest> entities)
@@ -27,11 +28,12 @@ public class ShiftRequestDtoMapper
     {
         return new ShiftRequest
         {
-            Id = dto.Id,
-            RequesterId = dto.RequesterId,
+            Id             = dto.Id,
+            RequesterId    = dto.RequesterId,
             TargetDoctorId = dto.TargetDoctorId,
-            ShiftId = dto.ShiftId,
-            Status = dto.Status
+            ShiftId        = dto.ShiftId,
+            Status         = (ShiftScheduler.Domain.Enums.RequestStatus)dto.Status
         };
     }
 }
+

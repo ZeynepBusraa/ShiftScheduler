@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<ShiftScheduler.Application.Repositories.IShiftRepository,        ShiftScheduler.Infrastructure.Repositories.ShiftRepository>();
         services.AddScoped<ShiftScheduler.Application.Repositories.IUserRepository,         ShiftScheduler.Infrastructure.Repositories.UserRepository>();
         services.AddScoped<ShiftScheduler.Application.Repositories.IShiftRequestRepository, ShiftScheduler.Infrastructure.Repositories.ShiftRequestRepository>();
+        services.AddScoped<IShiftRequestRepository, ShiftRequestRepository>();
             
         return services;
     }

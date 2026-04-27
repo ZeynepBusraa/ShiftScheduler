@@ -33,12 +33,8 @@ TestResults/
 Thumbs.db
 desktop.ini
 
-## =============================================
-## SENSITIVE: Gerçek bağlantı bilgilerini içerir
-## =============================================
-## Bunlar GİTHUB'A GİTMEMELİ — appsettings.Example.json'u kullan!
-src/ShiftScheduler.Api/appsettings.json
-src/ShiftScheduler.Api/appsettings.Development.json
+## appsettings.json ekip reposu olduğu için paylaşılıyor
+## (repo private, sadece ekip üyeleri erişebilir)
 
 ## Ignore EF migration snapshots that can be regenerated (optional)
 ## Migrations klasörünü paylaşmak istersen bu satırı sil

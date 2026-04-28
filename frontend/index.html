@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShiftScheduler</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <div id="login-view" class="view view-center">
+            <div class="login-card">
+                <h2 class="logo">Shift<span>Scheduler</span></h2>
+                <form id="login-form">
+                    <div class="input-field"><label>E-posta</label><input type="email" id="email" placeholder="e-posta" required></div>
+                    <div class="input-field"><label>Şifre</label><input type="password" id="password" placeholder="••••••••" required></div>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px;">Giriş Yap</button>
+                    <p style="font-size: 0.9rem; margin-top: 15px;">Hesabınız yok mu? <a href="#" id="show-register">Kayıt Ol</a></p>
+                </form>
+                <form id="register-form" class="hidden">
+                    <div class="input-field"><label>Ad Soyad</label><input type="text" id="reg-name" placeholder="Ad Soyad" required></div>
+                    <div class="input-field"><label>E-posta</label><input type="email" id="reg-email" placeholder="eposta" required></div>
+                    <div class="input-field"><label>Şifre</label><input type="password" id="reg-password" placeholder="••••••••" required></div>
+                    <button type="submit" class="btn-success" style="margin-top: 15px;">Kaydol ve Başla</button>
+                    <p style="font-size: 0.9rem; margin-top: 15px;"><a href="#" id="show-login">Geri Dön</a></p>
+                </form>
+            </div>
+        </div>
+
+        <div id="dashboard-view" class="view hidden">
+            <nav class="navbar">
+                <div class="nav-brand">Shift<span>Scheduler</span></div>
+                <div style="display:flex; gap:20px; align-items:center;">
+                    <button id="show-requests-btn" class="btn-link">Taleplerim</button>
+                    <button id="logout-btn" class="btn-logout">Oturumu Kapat</button>
+                </div>
+            </nav>
+            <main>
+                <div class="control-panel">
+                    <div class="selection-wrapper">
+                        <div class="input-field">
+                            <label>Yıl</label>
+                            <select id="year-select" style="width:110px;">
+                                <option value="2020">2020</option><option value="2021">2021</option>
+                                <option value="2022">2022</option><option value="2023">2023</option>
+                                <option value="2024">2024</option><option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Ay</label>
+                            <select id="month-select" style="width:130px;">
+                                <option value="0">Ocak</option><option value="1">Şubat</option>
+                                <option value="2">Mart</option><option value="3" selected>Nisan</option>
+                                <option value="4">Mayıs</option><option value="5">Haziran</option>
+                                <option value="6">Temmuz</option><option value="7">Ağustos</option>
+                                <option value="8">Eylül</option><option value="9">Ekim</option>
+                                <option value="10">Kasım</option><option value="11">Aralık</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button id="manual-add-btn" class="btn-outline">Shift Ekle</button>
+                        <button id="generate-btn" class="btn-primary">Nöbetleri Yaz</button>
+                    </div>
+                </div>
+                <div class="calendar-wrapper">
+                    <div class="calendar-header-days">
+                        <div>PAZARTESİ</div><div>SALI</div><div>ÇARŞAMBA</div><div>PERŞEMBE</div><div>CUMA</div><div>CUMARTESİ</div><div>PAZAR</div>
+                    </div>
+                    <div id="calendar-days" class="days-container"></div>
+                </div>
+            </main>
+        </div>
+
+        <div id="request-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Nöbet Değişimi</h3>
+                <p id="modal-info">Talep gönderilsin mi?</p>
+                <div style="display:flex; gap:12px; margin-top:20px; justify-content:center;">
+                    <button id="send-swap-btn" class="btn-primary">Gönder</button>
+                    <button id="close-modal" class="btn-link">Vazgeç</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

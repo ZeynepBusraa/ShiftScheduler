@@ -10,6 +10,15 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- 1. CORS POLİTİKASINI EKLE ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -45,19 +54,25 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+// --- 2. CORS'U AKTİF ET ---
+app.UseCors("AllowAll");
+
 // Apply pending migrations automatically on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
 }
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// Yerel testlerde sorun çıkmaması için redirection'ı geçici olarak pasife alabilirsin
+// app.UseHttpsRedirection();
+
 app.UseAuthentication(); // JWT token doğrulama
 app.UseAuthorization();  // Rol/politika kontrolü
 app.MapControllers();

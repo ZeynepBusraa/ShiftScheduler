@@ -4,33 +4,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShiftScheduler</title>
+    <title>ShiftScheduler – Klinik Nöbet Yönetimi</title>
+    <meta name="description" content="Klinik nöbet yönetim sistemi – rol bazlı giriş ve nöbet planlama.">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <div id="app">
+
+        <!-- ══════════════════════════════════════
+             GİRİŞ / KAYIT EKRANI
+        ══════════════════════════════════════ -->
         <div id="login-view" class="view view-center">
             <div class="login-card">
                 <h2 class="logo">Shift<span>Scheduler</span></h2>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-top:-1rem;margin-bottom:1.5rem;">Klinik Nöbet Yönetimi</p>
+
+                <!-- Giriş Formu -->
                 <form id="login-form">
-                    <div class="input-field"><label>E-posta</label><input type="email" id="email"
-                            placeholder="ornek@hastane.com" required></div>
-                    <div class="input-field"><label>Şifre</label><input type="password" id="password"
-                            placeholder="••••••••" required></div>
-                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px;">Giriş Yap</button>
-                    <p style="font-size: 0.9rem; margin-top: 15px;">Hesabınız yok mu? <a href="#"
-                            id="show-register">Kayıt Ol</a></p>
-                </form>
-                <form id="register-form" class="hidden">
-                    <div style="display:flex; gap:10px;">
-                        <div class="input-field"><label>Ad</label><input type="text" id="reg-firstname" placeholder="Ad"
-                                required></div>
-                        <div class="input-field"><label>Soyad</label><input type="text" id="reg-lastname"
-                                placeholder="Soyad" required></div>
+                    <div class="input-field">
+                        <label>E-posta</label>
+                        <input type="email" id="email" placeholder="ornek@hastane.com" required>
                     </div>
-                    <div class="input-field" style="margin-top: 10px;">
+                    <div class="input-field" style="margin-top:12px;">
+                        <label>Şifre</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width:100%;margin-top:18px;">Giriş Yap</button>
+                    <p style="font-size:0.9rem;margin-top:15px;">Hesabınız yok mu?
+                        <a href="#" id="show-register">Kayıt Ol</a>
+                    </p>
+                </form>
+
+                <!-- Kayıt Formu -->
+                <form id="register-form" class="hidden">
+                    <div style="display:flex;gap:10px;">
+                        <div class="input-field" style="flex:1;">
+                            <label>Ad</label>
+                            <input type="text" id="reg-firstname" placeholder="Ad" required>
+                        </div>
+                        <div class="input-field" style="flex:1;">
+                            <label>Soyad</label>
+                            <input type="text" id="reg-lastname" placeholder="Soyad" required>
+                        </div>
+                    </div>
+                    <div class="input-field" style="margin-top:10px;">
                         <label>Bölüm</label>
                         <select id="reg-department" required>
                             <option value="1">Göğüs Cerrahisi</option>
@@ -39,24 +58,36 @@
                             <option value="4">Radyasyon Onkolojisi</option>
                         </select>
                     </div>
-                    <div class="input-field" style="margin-top: 10px;"><label>E-posta</label><input type="email"
-                            id="reg-email" placeholder="eposta@hastane.com" required></div>
-                    <div class="input-field" style="margin-top: 10px;"><label>Şifre</label><input type="password"
-                            id="reg-password" placeholder="••••••••" required></div>
-                    <button type="submit" class="btn-success" style="margin-top: 15px; width: 100%;">Kaydol ve
-                        Başla</button>
-                    <p style="font-size: 0.9rem; margin-top: 15px; text-align: center;"><a href="#" id="show-login">Geri
-                            Dön</a></p>
+                    <div class="input-field" style="margin-top:10px;">
+                        <label>E-posta</label>
+                        <input type="email" id="reg-email" placeholder="eposta@hastane.com" required>
+                    </div>
+                    <div class="input-field" style="margin-top:10px;">
+                        <label>Şifre</label>
+                        <input type="password" id="reg-password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-success" style="margin-top:15px;width:100%;">Kaydol ve Başla</button>
+                    <p style="font-size:0.9rem;margin-top:15px;text-align:center;">
+                        <a href="#" id="show-login">← Geri Dön</a>
+                    </p>
                 </form>
             </div>
         </div>
 
+        <!-- ══════════════════════════════════════
+             DASHBOARD
+        ══════════════════════════════════════ -->
         <div id="dashboard-view" class="view hidden">
+
+            <!-- Navbar -->
             <nav class="navbar">
                 <div class="nav-brand">Shift<span>Scheduler</span></div>
-                <div style="display:flex; gap:20px; align-items:center;">
-                    <div id="bashekim-dept-filter" class="hidden input-field" style="margin: 0; min-width: 200px;">
-                        <select id="global-dept-select" style="padding: 0.4rem; font-size: 0.9rem;">
+
+                <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+
+                    <!-- Başhekim: Bölüm filtresi -->
+                    <div id="bashekim-dept-filter" class="hidden input-field" style="margin:0;min-width:200px;">
+                        <select id="global-dept-select" style="padding:0.4rem;font-size:0.9rem;">
                             <option value="1">Göğüs Cerrahisi</option>
                             <option value="2">Kalp Damar Cerrahisi</option>
                             <option value="3">Çocuk Cerrahisi</option>
@@ -64,47 +95,61 @@
                         </select>
                     </div>
 
-                    <button id="btn-onay-ekrani" class="btn-success" style="display:none; padding: 0.4rem 1rem; font-size: 0.9rem;">Onay Bekleyenler</button>
+                    <!-- Başhekim butonu -->
+                    <button id="btn-onay-ekrani" class="btn-success"
+                        style="display:none;padding:0.4rem 1rem;font-size:0.9rem;">
+                        📋 Onay Bekleyenler
+                    </button>
 
+                    <!-- Asistan/Uzman butonları -->
                     <button id="btn-nobet-degisimi" class="btn-outline"
-                        style="display:none; padding: 0.4rem 1rem; font-size: 0.9rem;">Nöbet Değişimi <span id="swap-badge"
-                            style="background:red; color:white; border-radius:50%; padding:2px 6px; font-size:0.75rem; margin-left:5px;">2</span></button>
-                    <button id="btn-taleplerim" class="btn-link" style="display:none;">Taleplerim</button>
-                    
-                    <button id="logout-btn" class="btn-logout">Oturumu Kapat</button>
+                        style="display:none;padding:0.4rem 1rem;font-size:0.9rem;">
+                        🔄 Nöbet Değişimi
+                        <span id="swap-badge"
+                            style="background:red;color:white;border-radius:50%;padding:2px 7px;font-size:0.72rem;margin-left:5px;">!</span>
+                    </button>
+
+                    <button id="btn-taleplerim" class="btn-link" style="display:none;">
+                        📁 Taleplerim
+                    </button>
+
+                    <!-- Kullanıcı adı + çıkış -->
+                    <span id="user-name-label"
+                        style="font-size:0.82rem;color:var(--text-secondary);font-weight:600;"></span>
+                    <button id="logout-btn" class="btn-logout">Çıkış</button>
                 </div>
             </nav>
+
+            <!-- Ana İçerik -->
             <main>
                 <div class="control-panel">
                     <div class="selection-wrapper">
                         <div class="input-field">
                             <label>Yıl</label>
-                            <select id="year-select" style="width:110px;">
-                                <option value="2026" selected>2026</option>
-                            </select>
+                            <select id="year-select" style="width:110px;"></select>
                         </div>
                         <div class="input-field">
                             <label>Ay</label>
-                            <select id="month-select" style="width:130px;">
-                                <option value="3" selected>Nisan</option>
-                            </select>
+                            <select id="month-select" style="width:140px;"></select>
                         </div>
                     </div>
 
-                    <div class="tabs-container" style="display:flex; gap:10px;">
+                    <div class="tabs-container" style="display:flex;gap:10px;">
                         <button id="tab-asistan" class="btn-primary">Asistan Nöbetleri</button>
-                        <button id="tab-uzman" class="btn-outline">Uzman Nöbetleri</button>
+                        <button id="tab-uzman"   class="btn-outline">Uzman Nöbetleri</button>
                     </div>
 
+                    <!-- Sadece kıdemli asistan/uzman görür -->
                     <div id="btn-nobet-ekle" style="display:none;">
-                        <div style="display:flex; gap:12px;">
-                            <button id="manual-add-btn" class="btn-outline">Shift Ekle</button>
-                            <button id="generate-btn" class="btn-primary">Nöbetleri Yaz (Oto)</button>
-                            <button id="submit-to-bashekim-btn" class="btn-success">Başhekime Gönder</button>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button id="manual-add-btn"          class="btn-outline">➕ Shift Ekle</button>
+                            <button id="generate-btn"            class="btn-primary">⚡ Nöbetleri Yaz (Oto)</button>
+                            <button id="submit-to-bashekim-btn"  class="btn-success" style="width:auto;padding:0.8rem 1.2rem;">📤 Başhekime Gönder</button>
                         </div>
                     </div>
                 </div>
 
+                <!-- Takvim -->
                 <div class="calendar-wrapper">
                     <div class="calendar-header-days">
                         <div>PAZARTESİ</div>
@@ -120,31 +165,39 @@
             </main>
         </div>
 
+        <!-- ══════════════════════════════════════
+             NÖBET DEĞİŞİMİ MODAL
+        ══════════════════════════════════════ -->
         <div id="swap-modal" class="modal hidden">
             <div class="modal-content">
-                <h3>Nöbet Değişimi Talebi</h3>
-                <p id="swap-limit-warning"
-                    style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">Sadece kendi
-                    nöbetleriniz için değişim talebi oluşturabilirsiniz. (Kalan Hak: <span
-                        id="modal-swap-left">2</span>)</p>
+                <h3>🔄 Nöbet Değişimi Talebi</h3>
+                <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:15px;">
+                    Sadece kendi nöbetleriniz için değişim talebi oluşturabilirsiniz.<br>
+                    <strong>Kalan Hak: <span id="modal-swap-left">2</span></strong>
+                </p>
                 <div class="input-field">
-                    <label>Değiştirmek İstediğiniz Nöbetiniz</label>
+                    <label>Değiştirmek İstediğiniz Nöbet</label>
                     <select id="my-shifts-select">
                         <option value="">Nöbet Seçin</option>
                     </select>
                 </div>
-                <div class="input-field" style="margin-top: 10px;">
-                    <label>Mazeret / Açıklama</label>
+                <div class="input-field" style="margin-top:12px;">
+                    <label>Hedef Doktorun ID'si</label>
+                    <input type="number" id="swap-target-id" placeholder="Örn: 5" min="1">
+                </div>
+                <div class="input-field" style="margin-top:12px;">
+                    <label>Mazeret / Açıklama (opsiyonel)</label>
                     <input type="text" id="swap-reason" placeholder="Kısaca açıklayınız...">
                 </div>
-                <div style="display:flex; gap:12px; margin-top:20px; justify-content:center;">
+                <div style="display:flex;gap:12px;margin-top:20px;justify-content:center;">
                     <button id="submit-swap-btn" class="btn-primary">Talep Gönder</button>
                     <button id="close-swap-modal" class="btn-link">İptal</button>
                 </div>
             </div>
         </div>
 
-    </div>
+    </div><!-- /#app -->
+
     <script src="app.js"></script>
 </body>
 

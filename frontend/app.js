@@ -1,101 +1,574 @@
-const loginForm = document.getElementById('login-form');
-let currentUser = null;
+// =====================================================================
+//  ShiftScheduler – Frontend Ana Mantığı
+//  API Base: http://localhost:5094
+// =====================================================================
 
-// Giriş işlemi
-loginForm.addEventListener('submit', async (e) => {
+const API = 'http://localhost:5094/api';
+let currentUser = null;  // { id, name, role, isSenior, departmentId, remainingChangeRequests }
+let activeTab = 'asistan'; // 'asistan' | 'uzman'
+let allShifts = [];        // Backend'den gelen tüm nöbetler (o anki görünüm için)
+
+// ─── Yardımcı: Authenticated Fetch ───────────────────────────────────
+function authHeaders() {
+    const token = localStorage.getItem('token');
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+async function apiFetch(path, options = {}) {
+    options.headers = { ...authHeaders(), ...(options.headers || {}) };
+    const res = await fetch(API + path, options);
+    const data = await res.json();
+    if (!res.ok && res.status === 401) {
+        logout();
+        return null;
+    }
+    return data;
+}
+
+// ─── Ay/Yıl yardımcıları ─────────────────────────────────────────────
+function getSelectedYear()  { return parseInt(document.getElementById('year-select').value); }
+function getSelectedMonth() { return parseInt(document.getElementById('month-select').value); }
+function getDeptFilter()    { 
+    const sel = document.getElementById('global-dept-select');
+    return sel ? parseInt(sel.value) : (currentUser?.departmentId ?? 1);
+}
+
+// ─── Kayıt / Giriş form geçişleri ────────────────────────────────────
+document.getElementById('show-register').addEventListener('click', (e) => {
     e.preventDefault();
-    
-    const emailInput = loginForm.querySelector('input[type="email"]').value;
-    const passwordInput = loginForm.querySelector('input[type="password"]').value;
+    document.getElementById('login-form').classList.add('hidden');
+    document.getElementById('register-form').classList.remove('hidden');
+});
+document.getElementById('show-login').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('register-form').classList.add('hidden');
+    document.getElementById('login-form').classList.remove('hidden');
+});
+
+// ─── GİRİŞ ───────────────────────────────────────────────────────────
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email    = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('http://localhost:5094/api/Auth/login', {
+        const res  = await fetch(`${API}/Auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: emailInput, password: passwordInput })
+            body: JSON.stringify({ email, password })
         });
+        const data = await res.json();
+        console.log('Login response:', data);
 
-        const data = await response.json();
-        console.log("Backend'den gelen ham veri:", data); // Hata ayıklama için kritik!
-
-        if (response.ok && data.success) {
-            localStorage.setItem('token', data.data.token); 
-            localStorage.setItem('userEmail', emailInput);
-            
-            // Backend'den gelen veriyi sisteme kaydediyoruz
-            // Rol bilgisi Enum'dan "Bashekim" veya "1" olarak gelebilir, ikisini de kontrol ediyoruz
+        if (res.ok && data.success) {
+            localStorage.setItem('token', data.data.token);
             currentUser = {
+                id: data.data.userId,
                 name: data.data.fullName,
-                role: data.data.role, // "Bashekim", "Asistan" veya "1", "2"
+                role: data.data.role,          // "Bashekim" | "Asistan" | "Uzman"
                 isSenior: data.data.isSenior,
-                remainingChangeRequests: data.data.remainingChangeRequests || 0
+                departmentId: data.data.departmentId,
+                departmentName: data.data.departmentName,
+                remainingChangeRequests: data.data.remainingChangeRequests ?? 0
             };
-            
-            console.log("Sisteme tanımlanan kullanıcı:", currentUser);
-            
-            loginForm.reset();
+            console.log('currentUser:', currentUser);
+            document.getElementById('login-form').reset();
             showDashboard();
         } else {
-            alert("Hata: " + (data.message || "Giriş başarısız."));
+            alert('Hata: ' + (data.message || 'Giriş başarısız.'));
         }
-    } catch (error) {
-        console.error("Bağlantı hatası:", error);
-        alert("Sunucuya bağlanılamadı.");
+    } catch (err) {
+        console.error('Bağlantı hatası:', err);
+        alert('Sunucuya bağlanılamadı. API çalışıyor mu?');
     }
 });
 
+// ─── KAYIT ───────────────────────────────────────────────────────────
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {
+        firstName: document.getElementById('reg-firstname').value,
+        lastName:  document.getElementById('reg-lastname').value,
+        email:     document.getElementById('reg-email').value,
+        password:  document.getElementById('reg-password').value,
+        departmentId: parseInt(document.getElementById('reg-department').value),
+        role: 2    // Asistan (varsayılan)
+    };
+    try {
+        const res  = await fetch(`${API}/Users`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.success) {
+            alert('Kayıt başarılı! Giriş yapabilirsiniz.');
+            document.getElementById('register-form').reset();
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        } else {
+            alert('Kayıt hatası: ' + (data.message || 'Bilinmeyen hata.'));
+        }
+    } catch (err) {
+        alert('Sunucuya bağlanılamadı.');
+    }
+});
+
+// ─── DASHBOARD KURULUMU ───────────────────────────────────────────────
 function showDashboard() {
     document.getElementById('login-view').classList.add('hidden');
     document.getElementById('dashboard-view').classList.remove('hidden');
 
-    const btnOnay = document.getElementById('btn-onay-ekrani');
-    const btnNobetEkle = document.getElementById('btn-nobet-ekle'); 
-    const btnDegisim = document.getElementById('btn-nobet-degisimi');
-    const btnTalepler = document.getElementById('btn-taleplerim');
+    // Kullanıcı adını göster
+    const userLabel = document.getElementById('user-name-label');
+    if (userLabel) userLabel.textContent = currentUser.name + ' (' + currentUser.role + ')';
 
-    const userRole = currentUser.role.toString();
-    
-    // Hata ayıklama için: Hüseyin ile girdiğinde konsolda ne yazdığına bakacağız
-    console.log("Yetki kontrolü yapılıyor:", currentUser);
+    const role     = currentUser.role; // "Bashekim" | "Asistan" | "Uzman"
+    const isSenior = String(currentUser.isSenior).toLowerCase() === 'true';
 
-    if (userRole === "Bashekim" || userRole === "1") {
-        if (btnOnay) btnOnay.style.display = 'inline-block';
-        if (btnNobetEkle) btnNobetEkle.style.display = 'none';
-        if (btnDegisim) btnDegisim.style.display = 'none';
-        if (btnTalepler) btnTalepler.style.display = 'none';
-    } 
-    else if (userRole === "Asistan" || userRole === "2") {
-        if (btnOnay) btnOnay.style.display = 'none';
-        if (btnDegisim) btnDegisim.style.display = 'inline-block';
-        if (btnTalepler) btnTalepler.style.display = 'inline-block';
+    // Rol bazlı buton görünürlükleri
+    const btnOnay      = document.getElementById('btn-onay-ekrani');
+    const btnNobetEkle = document.getElementById('btn-nobet-ekle');
+    const btnDegisim   = document.getElementById('btn-nobet-degisimi');
+    const btnTalepler  = document.getElementById('btn-taleplerim');
+    const deptFilter   = document.getElementById('bashekim-dept-filter');
 
-        // Daha esnek bir isSenior kontrolü (Hem string hem boolean destekler)
-        const isSenior = String(currentUser.isSenior).toLowerCase() === 'true';
+    // Hepsini gizle, sonra role göre aç
+    [btnOnay, btnNobetEkle, btnDegisim, btnTalepler].forEach(b => { if (b) b.style.display = 'none'; });
+    if (deptFilter) deptFilter.classList.add('hidden');
 
-        if (isSenior) {
-            console.log("Kıdemli asistan yetkisi açıldı!");
-            if (btnNobetEkle) btnNobetEkle.style.display = 'block'; 
+    if (role === 'Bashekim') {
+        if (btnOnay)    btnOnay.style.display    = 'inline-block';
+        if (deptFilter) deptFilter.classList.remove('hidden');
+    } else if (role === 'Asistan' || role === 'Uzman') {
+        if (btnDegisim)  btnDegisim.style.display  = 'inline-block';
+        if (btnTalepler) btnTalepler.style.display  = 'inline-block';
+        if (isSenior && btnNobetEkle) btnNobetEkle.style.display = 'block';
+    }
+
+    // Ay/Yıl seçicilerini doldur
+    fillYearMonth();
+
+    // Takvimi yükle
+    loadCalendar();
+}
+
+// ─── YIL / AY SEÇİCİLERİ ─────────────────────────────────────────────
+function fillYearMonth() {
+    const now = new Date();
+    const yearSel  = document.getElementById('year-select');
+    const monthSel = document.getElementById('month-select');
+
+    // Yılları doldur (2024-2027)
+    yearSel.innerHTML = '';
+    for (let y = 2024; y <= 2027; y++) {
+        const opt = document.createElement('option');
+        opt.value = y; opt.textContent = y;
+        if (y === now.getFullYear()) opt.selected = true;
+        yearSel.appendChild(opt);
+    }
+
+    // Ayları doldur
+    const aylar = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    monthSel.innerHTML = '';
+    aylar.forEach((ad, i) => {
+        const opt = document.createElement('option');
+        opt.value = i + 1; opt.textContent = ad;
+        if (i + 1 === now.getMonth() + 1) opt.selected = true;
+        monthSel.appendChild(opt);
+    });
+
+    yearSel.addEventListener('change',  loadCalendar);
+    monthSel.addEventListener('change', loadCalendar);
+
+    const deptSel = document.getElementById('global-dept-select');
+    if (deptSel) deptSel.addEventListener('change', loadCalendar);
+}
+
+// ─── TAKVİM YÜKLE ────────────────────────────────────────────────────
+async function loadCalendar() {
+    const container = document.getElementById('calendar-days');
+    container.innerHTML = '<div style="padding:2rem;text-align:center;color:#888;">Yükleniyor...</div>';
+
+    const data = await apiFetch('/Shifts/list');
+    if (!data || !data.success) {
+        container.innerHTML = '<div style="padding:2rem;text-align:center;color:red;">Nöbetler yüklenemedi.</div>';
+        return;
+    }
+
+    allShifts = data.data || [];
+    renderCalendar();
+}
+
+function renderCalendar() {
+    const year  = getSelectedYear();
+    const month = getSelectedMonth(); // 1-12
+    const container = document.getElementById('calendar-days');
+    container.innerHTML = '';
+
+    // Ay bazında filtrele
+    const monthShifts = allShifts.filter(s => {
+        if (!s.date) return false;
+        const d = new Date(s.date);
+        return d.getFullYear() === year && (d.getMonth() + 1) === month;
+    });
+
+    const daysInMonth  = new Date(year, month, 0).getDate();
+    let firstDayOfWeek = new Date(year, month - 1, 1).getDay(); // 0=Pazar
+    // Pazartesi başlangıçlı grid
+    firstDayOfWeek = (firstDayOfWeek === 0) ? 6 : firstDayOfWeek - 1;
+
+    // Boş hücreler
+    for (let i = 0; i < firstDayOfWeek; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'day-box empty-box';
+        container.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const box = document.createElement('div');
+        box.className = 'day-box';
+
+        const numEl = document.createElement('div');
+        numEl.className = 'day-number';
+        numEl.textContent = d;
+        box.appendChild(numEl);
+
+        // O güne ait nöbetler
+        const dayShifts = monthShifts.filter(s => new Date(s.date).getDate() === d);
+        if (dayShifts.length === 0) {
+            const emptyTxt = document.createElement('span');
+            emptyTxt.style.cssText = 'font-size:0.68rem;color:#bbb;display:block;margin-top:6px;';
+            emptyTxt.textContent = '—';
+            box.appendChild(emptyTxt);
         } else {
-            console.log("Düz asistan yetkisi (Nöbet ekleme kapalı).");
-            if (btnNobetEkle) btnNobetEkle.style.display = 'none'; 
+            dayShifts.forEach(s => {
+                const badge = document.createElement('span');
+                badge.className = 'shift-badge';
+                badge.textContent = `Dr. #${s.userId}`;
+                badge.title = `Nöbet ID: ${s.id} | Tür: ${s.shiftType}`;
+                // shiftType 0 = Gece (kıdemli rengi), 1 = Gündüz
+                badge.classList.add(s.shiftType === 0 ? 'shift-kidemli' : 'shift-comez');
+                box.appendChild(badge);
+            });
+        }
+
+        container.appendChild(box);
+    }
+
+    // Boşluk tamamlama (7'nin katı olsun)
+    const totalCells = firstDayOfWeek + daysInMonth;
+    const remainder  = totalCells % 7;
+    if (remainder !== 0) {
+        for (let i = 0; i < (7 - remainder); i++) {
+            const empty = document.createElement('div');
+            empty.className = 'day-box empty-box';
+            container.appendChild(empty);
         }
     }
 }
 
-// --- OTURUMU KAPATMA İŞLEMİ ---
-const logoutBtn = document.getElementById('logout-btn');
+// ─── TAB BUTONLARI ────────────────────────────────────────────────────
+document.getElementById('tab-asistan').addEventListener('click', () => {
+    activeTab = 'asistan';
+    document.getElementById('tab-asistan').className = 'btn-primary';
+    document.getElementById('tab-uzman').className   = 'btn-outline';
+    renderCalendar();
+});
+document.getElementById('tab-uzman').addEventListener('click', () => {
+    activeTab = 'uzman';
+    document.getElementById('tab-asistan').className = 'btn-outline';
+    document.getElementById('tab-uzman').className   = 'btn-primary';
+    renderCalendar();
+});
 
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        // 1. Ceplerimizdeki anahtarları (Token ve Mail) çöpe atıyoruz
-        localStorage.removeItem('token');
-        localStorage.removeItem('userEmail');
-        
-        // 2. Kimliği sıfırlıyoruz
-        currentUser = null;
+// ─── NÖBET OLUŞTUR (OTO) ─────────────────────────────────────────────
+document.getElementById('generate-btn').addEventListener('click', async () => {
+    const year  = getSelectedYear();
+    const month = getSelectedMonth();
+    const deptId = currentUser.role === 'Bashekim' ? getDeptFilter() : currentUser.departmentId;
+    const listType = activeTab === 'asistan' ? 0 : 1; // 0=Asistan, 1=Uzman
 
-        // 3. Hastaneden (Dashboard) çıkıp Kapı Önüne (Login) dönüyoruz
-        document.getElementById('dashboard-view').classList.add('hidden');
-        document.getElementById('login-view').classList.remove('hidden');
+    if (!confirm(`${year}/${month} ayı için ${activeTab} nöbet listesi otomatik oluşturulsun mu?`)) return;
+
+    const data = await apiFetch('/Shifts/generate', {
+        method: 'POST',
+        body: JSON.stringify({ year, month, departmentId: deptId, listType })
+    });
+
+    if (data && data.success) {
+        alert('Nöbet listesi başarıyla oluşturuldu!');
+        loadCalendar();
+    } else {
+        alert('Hata: ' + (data?.message || 'Nöbet oluşturulamadı.'));
+    }
+});
+
+// ─── MANUEL SHIFT EKLE ───────────────────────────────────────────────
+document.getElementById('manual-add-btn').addEventListener('click', () => {
+    openManualAddModal();
+});
+
+function openManualAddModal() {
+    const dateStr = prompt('Nöbet tarihi (YYYY-MM-DD formatında, örn: 2026-05-20):');
+    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        if (dateStr !== null) alert('Geçersiz tarih formatı. YYYY-MM-DD şeklinde girin.');
+        return;
+    }
+    const userIdStr = prompt('Nöbet atanacak kullanıcı ID:');
+    if (!userIdStr) return;
+    const userId = parseInt(userIdStr);
+    if (isNaN(userId) || userId <= 0) { alert('Geçersiz kullanıcı ID.'); return; }
+
+    addShiftManually(userId, dateStr);
+}
+
+async function addShiftManually(userId, dateStr) {
+    const data = await apiFetch('/Shifts/save', {
+        method: 'POST',
+        body: JSON.stringify({ id: 0, userId, date: dateStr + 'T00:00:00', shiftType: 0, isApproved: false })
+    });
+    if (data && data.success) {
+        alert('Nöbet eklendi!');
+        loadCalendar();
+    } else {
+        alert('Hata: ' + (data?.message || 'Nöbet eklenemedi.'));
+    }
+}
+
+// ─── BAŞHEKİME GÖNDER ────────────────────────────────────────────────
+document.getElementById('submit-to-bashekim-btn').addEventListener('click', async () => {
+    // Önce mevcut liste ID'sini bul
+    const listsData = await apiFetch('/ShiftLists');
+    if (!listsData || !listsData.success) { alert('Liste bilgisi alınamadı.'); return; }
+
+    const year  = getSelectedYear();
+    const month = getSelectedMonth();
+    const listType = activeTab === 'asistan' ? 0 : 1;
+    const deptId = currentUser.departmentId;
+
+    const myList = (listsData.data || []).find(l =>
+        l.year === year && l.month === month && l.listType === listType &&
+        l.departmentId === deptId && l.status === 0 // 0=Taslak
+    );
+
+    if (!myList) {
+        alert('Gönderilecek taslak liste bulunamadı. Önce nöbetleri oluşturun.');
+        return;
+    }
+
+    if (!confirm('Liste başhekime onaya gönderilsin mi?')) return;
+
+    const data = await apiFetch(`/ShiftLists/${myList.id}/submit`, { method: 'PUT' });
+    if (data && data.success) {
+        alert('Liste başhekime gönderildi!');
+    } else {
+        alert('Hata: ' + (data?.message || 'Gönderilemedi.'));
+    }
+});
+
+// ─── ONAY BEKLEYENLER (BAŞHEKİM) ─────────────────────────────────────
+document.getElementById('btn-onay-ekrani').addEventListener('click', async () => {
+    await openApprovalPanel();
+});
+
+async function openApprovalPanel() {
+    // ShiftLists: onay bekleyenler (status=1 → Gonderildi)
+    const listsData = await apiFetch('/ShiftLists');
+    const reqData   = await apiFetch('/ShiftRequests');
+
+    let html = '<div id="approval-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;overflow-y:auto;padding:2rem;box-sizing:border-box;">';
+    html += '<div style="max-width:700px;margin:auto;background:white;border-radius:24px;padding:2rem;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">';
+    html += '<h3 style="margin:0;">📋 Onay Bekleyen İşlemler</h3>';
+    html += '<button onclick="document.getElementById(\'approval-overlay\').remove()" class="btn-logout">Kapat</button></div>';
+
+    // Nöbet listeleri
+    const pendingLists = (listsData?.data || []).filter(l => l.status === 1); // 1=Gonderildi
+    html += `<h4>Nöbet Listeleri (${pendingLists.length} adet)</h4>`;
+    if (pendingLists.length === 0) {
+        html += '<p style="color:#888;">Onay bekleyen nöbet listesi yok.</p>';
+    } else {
+        pendingLists.forEach(l => {
+            const tip = l.listType === 0 ? 'Asistan' : 'Uzman';
+            html += `<div class="request-item">
+                <strong>${l.departmentName} – ${tip} Listesi (${l.year}/${l.month})</strong>
+                <br><small>Hazırlayan: ${l.preparedByUserName}</small>
+                <div style="margin-top:10px;display:flex;gap:8px;">
+                    <button onclick="approveList(${l.id}, true)" class="btn-success" style="width:auto;padding:0.4rem 1rem;font-size:0.85rem;">✓ Onayla</button>
+                    <button onclick="approveList(${l.id}, false)" class="btn-logout" style="padding:0.4rem 1rem;font-size:0.85rem;">✗ Reddet</button>
+                </div>
+            </div>`;
+        });
+    }
+
+    // Nöbet değişim talepleri
+    const pendingReqs = (reqData?.data || []).filter(r => r.status === 2); // 2=KidemliOnayladi
+    html += `<h4 style="margin-top:1.5rem;">🔄 Nöbet Değişim Talepleri (${pendingReqs.length} adet)</h4>`;
+    if (pendingReqs.length === 0) {
+        html += '<p style="color:#888;">Onay bekleyen değişim talebi yok.</p>';
+    } else {
+        pendingReqs.forEach(r => {
+            html += `<div class="request-item">
+                <strong>Talep #${r.id}</strong> — Nöbet ID: ${r.shiftId}
+                <br><small>Talep Eden: #${r.requesterId} → Hedef: #${r.targetDoctorId}</small>
+                <div style="margin-top:10px;display:flex;gap:8px;">
+                    <button onclick="approveRequest(${r.id}, true)" class="btn-success" style="width:auto;padding:0.4rem 1rem;font-size:0.85rem;">✓ Onayla</button>
+                    <button onclick="approveRequest(${r.id}, false)" class="btn-logout" style="padding:0.4rem 1rem;font-size:0.85rem;">✗ Reddet</button>
+                </div>
+            </div>`;
+        });
+    }
+
+    html += '</div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+window.approveList = async (id, approve) => {
+    const data = await apiFetch(`/ShiftLists/${id}/approve`, { method: 'PUT', body: JSON.stringify(approve) });
+    if (data && data.success) {
+        alert(approve ? 'Liste onaylandı!' : 'Liste reddedildi.');
+        document.getElementById('approval-overlay')?.remove();
+    } else {
+        alert('Hata: ' + (data?.message || 'İşlem başarısız.'));
+    }
+};
+
+window.approveRequest = async (id, approve) => {
+    const data = await apiFetch(`/ShiftRequests/${id}/approve`, { method: 'PUT', body: JSON.stringify(approve) });
+    if (data && data.success) {
+        alert(approve ? 'Talep onaylandı!' : 'Talep reddedildi.');
+        document.getElementById('approval-overlay')?.remove();
+    } else {
+        alert('Hata: ' + (data?.message || 'İşlem başarısız.'));
+    }
+};
+
+// ─── NÖBET DEĞİŞİMİ MODAL ────────────────────────────────────────────
+document.getElementById('btn-nobet-degisimi').addEventListener('click', async () => {
+    document.getElementById('modal-swap-left').textContent = currentUser.remainingChangeRequests;
+    await loadMyShiftsIntoSelect();
+    document.getElementById('swap-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-swap-modal').addEventListener('click', () => {
+    document.getElementById('swap-modal').classList.add('hidden');
+});
+
+async function loadMyShiftsIntoSelect() {
+    const sel = document.getElementById('my-shifts-select');
+    sel.innerHTML = '<option value="">Yükleniyor...</option>';
+
+    const data = await apiFetch('/Shifts/list');
+    if (!data || !data.success) {
+        sel.innerHTML = '<option value="">Nöbetler alınamadı</option>';
+        return;
+    }
+
+    const myShifts = (data.data || []).filter(s => s.userId === currentUser.id);
+    sel.innerHTML = '<option value="">Nöbet Seçin</option>';
+    myShifts.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = new Date(s.date).toLocaleDateString('tr-TR');
+        sel.appendChild(opt);
     });
 }
+
+document.getElementById('submit-swap-btn').addEventListener('click', async () => {
+    const shiftId  = parseInt(document.getElementById('my-shifts-select').value);
+    const targetId = parseInt(document.getElementById('swap-target-id').value);
+
+    if (!shiftId)  { alert('Lütfen değiştirmek istediğiniz nöbeti seçin.'); return; }
+    if (!targetId) { alert('Lütfen hedef doktorun ID\'sini girin.'); return; }
+
+    const data = await apiFetch('/ShiftRequests', {
+        method: 'POST',
+        body: JSON.stringify({ shiftId, targetDoctorId: targetId })
+    });
+
+    if (data && data.success) {
+        alert('Nöbet değişim talebiniz oluşturuldu!');
+        currentUser.remainingChangeRequests = Math.max(0, currentUser.remainingChangeRequests - 1);
+        document.getElementById('modal-swap-left').textContent = currentUser.remainingChangeRequests;
+        document.getElementById('swap-modal').classList.add('hidden');
+        // Formu temizle
+        document.getElementById('my-shifts-select').value = '';
+        document.getElementById('swap-target-id').value   = '';
+        document.getElementById('swap-reason').value      = '';
+    } else {
+        alert('Hata: ' + (data?.message || 'Talep oluşturulamadı.'));
+    }
+});
+
+// ─── TALEPLERİM PANELİ ───────────────────────────────────────────────
+document.getElementById('btn-taleplerim').addEventListener('click', async () => {
+    await openMyRequestsPanel();
+});
+
+async function openMyRequestsPanel() {
+    const data = await apiFetch('/ShiftRequests');
+
+    const statusLabel = ['Bekliyor', 'Hedef Onayladı', 'Kıdemli Onayladı', 'Başhekim Onayladı', 'Reddedildi'];
+    const statusClass  = ['status-bekliyor', 'status-bekliyor', 'status-bekliyor', 'status-onaylandi', 'status-reddedildi'];
+
+    let html = '<div id="requests-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:200;overflow-y:auto;padding:2rem;box-sizing:border-box;">';
+    html += '<div style="max-width:600px;margin:auto;background:white;border-radius:24px;padding:2rem;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">';
+    html += '<h3 style="margin:0;">📁 Taleplerim</h3>';
+    html += '<button onclick="document.getElementById(\'requests-overlay\').remove()" class="btn-logout">Kapat</button></div>';
+
+    const requests = data?.data || [];
+    if (requests.length === 0) {
+        html += '<p style="color:#888;text-align:center;">Henüz hiç talebiniz yok.</p>';
+    } else {
+        requests.forEach(r => {
+            const isIncoming = r.targetDoctorId === currentUser.id && r.status === 0;
+            html += `<div class="request-item">
+                <span class="request-status ${statusClass[r.status] || ''}">${statusLabel[r.status] ?? r.status}</span>
+                <strong>${r.requesterId === currentUser.id ? '📤 Gönderdiğim' : '📥 Gelen'} Talep #${r.id}</strong>
+                <br><small>Nöbet ID: ${r.shiftId} | Talep Eden: #${r.requesterId} → Hedef: #${r.targetDoctorId}</small>
+                ${isIncoming ? `<div style="margin-top:8px;display:flex;gap:8px;">
+                    <button onclick="respondRequest(${r.id}, true)" class="btn-success" style="width:auto;padding:0.3rem 0.8rem;font-size:0.8rem;">✓ Kabul</button>
+                    <button onclick="respondRequest(${r.id}, false)" class="btn-logout" style="padding:0.3rem 0.8rem;font-size:0.8rem;">✗ Reddet</button>
+                </div>` : ''}
+            </div>`;
+        });
+    }
+
+    html += '</div></div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+window.respondRequest = async (id, accept) => {
+    const data = await apiFetch(`/ShiftRequests/${id}/respond`, {
+        method: 'PUT',
+        body: JSON.stringify({ accept })
+    });
+    if (data && data.success) {
+        alert(accept ? 'Talep kabul edildi!' : 'Talep reddedildi.');
+        document.getElementById('requests-overlay')?.remove();
+    } else {
+        alert('Hata: ' + (data?.message || 'İşlem başarısız.'));
+    }
+};
+
+// ─── ÇIKIŞ ───────────────────────────────────────────────────────────
+function logout() {
+    localStorage.removeItem('token');
+    currentUser = null;
+    allShifts   = [];
+    document.getElementById('dashboard-view').classList.add('hidden');
+    document.getElementById('login-view').classList.remove('hidden');
+    document.getElementById('login-form').classList.remove('hidden');
+    document.getElementById('register-form').classList.add('hidden');
+}
+
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+// ─── SAYFA AÇILIŞINDA OTOMATİK GİRİŞ KONTROLÜ ───────────────────────
+(function checkExistingSession() {
+    const token = localStorage.getItem('token');
+    if (token) {
+        // Token var ama currentUser yok → sayfayı yenilemiş olabilir
+        // Güvenli taraf: login ekranına düş (token decode edilmedi)
+        // İleride /api/Auth/me endpoint'i eklenirse burada kullanılabilir
+        localStorage.removeItem('token'); // Temiz başla
+    }
+})();

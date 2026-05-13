@@ -241,9 +241,9 @@ function renderCalendar() {
             dayShifts.forEach(s => {
                 const badge = document.createElement('span');
                 badge.className = 'shift-badge';
+                // Gösterim: doktor adını göstermek isterseniz ek bir API çağrısı gerekir, şimdilik ID ile kalıyor
                 badge.textContent = `Dr. #${s.userId}`;
                 badge.title = `Nöbet ID: ${s.id} | Tür: ${s.shiftType}`;
-                // shiftType 0 = Gece (kıdemli rengi), 1 = Gündüz
                 badge.classList.add(s.shiftType === 0 ? 'shift-kidemli' : 'shift-comez');
                 box.appendChild(badge);
             });
@@ -300,33 +300,106 @@ document.getElementById('generate-btn').addEventListener('click', async () => {
     }
 });
 
-// ─── MANUEL SHIFT EKLE ───────────────────────────────────────────────
+// ─── MANUEL SHIFT EKLE (YENİ MODAL) ──────────────────────────────────
 document.getElementById('manual-add-btn').addEventListener('click', () => {
     openManualAddModal();
 });
 
-function openManualAddModal() {
-    const dateStr = prompt('Nöbet tarihi (YYYY-MM-DD formatında, örn: 2026-05-20):');
-    if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        if (dateStr !== null) alert('Geçersiz tarih formatı. YYYY-MM-DD şeklinde girin.');
-        return;
+async function openManualAddModal() {
+    // Dropdown'ları doldur (yıl, ay)
+    const yearSelect = document.getElementById('manual-year');
+    const monthSelect = document.getElementById('manual-month');
+    const currentYear = new Date().getFullYear();
+    yearSelect.innerHTML = '';
+    for (let y = currentYear - 1; y <= currentYear + 2; y++) {
+        const opt = document.createElement('option');
+        opt.value = y; opt.textContent = y;
+        if (y === currentYear) opt.selected = true;
+        yearSelect.appendChild(opt);
     }
-    const userIdStr = prompt('Nöbet atanacak kullanıcı ID:');
-    if (!userIdStr) return;
-    const userId = parseInt(userIdStr);
-    if (isNaN(userId) || userId <= 0) { alert('Geçersiz kullanıcı ID.'); return; }
+    const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    monthSelect.innerHTML = '';
+    months.forEach((name, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx + 1; opt.textContent = name;
+        if (idx === new Date().getMonth()) opt.selected = true;
+        monthSelect.appendChild(opt);
+    });
 
-    addShiftManually(userId, dateStr);
+    // Gün dropdown'ını dinamik yap
+    function updateDays() {
+        const year = parseInt(yearSelect.value);
+        const month = parseInt(monthSelect.value);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const daySelect = document.getElementById('manual-day');
+        daySelect.innerHTML = '';
+        for (let d = 1; d <= daysInMonth; d++) {
+            const opt = document.createElement('option');
+            opt.value = d; opt.textContent = d;
+            if (d === 1) opt.selected = true;
+            daySelect.appendChild(opt);
+        }
+    }
+    yearSelect.addEventListener('change', updateDays);
+    monthSelect.addEventListener('change', updateDays);
+    updateDays();
+
+    // Doktor listesini yükle
+    await loadDoctorsIntoSelect();
+
+    // Modal'ı göster
+    document.getElementById('manual-add-modal').classList.remove('hidden');
 }
 
-async function addShiftManually(userId, dateStr) {
+async function loadDoctorsIntoSelect() {
+    const select = document.getElementById('manual-doctor');
+    select.innerHTML = '<option value="">Yükleniyor...</option>';
+    try {
+        const data = await apiFetch('/Users');
+        if (data && data.success && Array.isArray(data.data)) {
+            select.innerHTML = '';
+            data.data.forEach(user => {
+                const opt = document.createElement('option');
+                opt.value = user.id;
+                opt.textContent = `${user.firstName} ${user.lastName} (${user.role})`;
+                select.appendChild(opt);
+            });
+        } else {
+            select.innerHTML = '<option value="">Doktor listesi alınamadı</option>';
+        }
+    } catch (err) {
+        console.error(err);
+        select.innerHTML = '<option value="">Hata oluştu</option>';
+    }
+}
+
+document.getElementById('submit-manual-btn').addEventListener('click', async () => {
+    const year = parseInt(document.getElementById('manual-year').value);
+    const month = parseInt(document.getElementById('manual-month').value);
+    const day = parseInt(document.getElementById('manual-day').value);
+    const userId = parseInt(document.getElementById('manual-doctor').value);
+    const shiftType = parseInt(document.getElementById('manual-shift-type').value);
+
+    if (!userId) { alert('Lütfen bir doktor seçin.'); return; }
+
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    await addShiftManually(userId, dateStr, shiftType);
+    document.getElementById('manual-add-modal').classList.add('hidden');
+});
+
+document.getElementById('close-manual-modal').addEventListener('click', () => {
+    document.getElementById('manual-add-modal').classList.add('hidden');
+});
+
+// Güncellenmiş addShiftManually – artık shiftType parametresi alıyor
+async function addShiftManually(userId, dateStr, shiftType = 0) {
     const data = await apiFetch('/Shifts/save', {
         method: 'POST',
-        body: JSON.stringify({ id: 0, userId, date: dateStr + 'T00:00:00', shiftType: 0, isApproved: false })
+        body: JSON.stringify({ id: 0, userId, date: dateStr + 'T00:00:00', shiftType: shiftType, isApproved: false })
     });
     if (data && data.success) {
         alert('Nöbet eklendi!');
-        loadCalendar();
+        loadCalendar(); // Takvimi yenile
     } else {
         alert('Hata: ' + (data?.message || 'Nöbet eklenemedi.'));
     }
@@ -568,7 +641,6 @@ document.getElementById('logout-btn').addEventListener('click', logout);
     if (token) {
         // Token var ama currentUser yok → sayfayı yenilemiş olabilir
         // Güvenli taraf: login ekranına düş (token decode edilmedi)
-        // İleride /api/Auth/me endpoint'i eklenirse burada kullanılabilir
         localStorage.removeItem('token'); // Temiz başla
     }
 })();

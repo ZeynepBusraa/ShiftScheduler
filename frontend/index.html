@@ -196,6 +196,44 @@
             </div>
         </div>
 
+        <!-- ══════════════════════════════════════
+             MANUEL NÖBET EKLEME MODALI (YENİ)
+        ══════════════════════════════════════ -->
+        <div id="manual-add-modal" class="modal hidden">
+            <div class="modal-content" style="width:400px;">
+                <h3>➕ Yeni Nöbet Ekle</h3>
+                <div class="input-field">
+                    <label>Yıl</label>
+                    <select id="manual-year"></select>
+                </div>
+                <div class="input-field">
+                    <label>Ay</label>
+                    <select id="manual-month"></select>
+                </div>
+                <div class="input-field">
+                    <label>Gün</label>
+                    <select id="manual-day"></select>
+                </div>
+                <div class="input-field">
+                    <label>Doktor (İsim Soyisim)</label>
+                    <select id="manual-doctor">
+                        <option value="">Yükleniyor...</option>
+                    </select>
+                </div>
+                <div class="input-field">
+                    <label>Nöbet Türü</label>
+                    <select id="manual-shift-type">
+                        <option value="0">Gece (Kıdemli)</option>
+                        <option value="1">Gündüz (Çömez)</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:12px;margin-top:20px;justify-content:center;">
+                    <button id="submit-manual-btn" class="btn-primary">Nöbet Ekle</button>
+                    <button id="close-manual-modal" class="btn-link">İptal</button>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /#app -->
 
     <script src="app.js"></script>

@@ -8,7 +8,7 @@ namespace ShiftScheduler.Application.Handlers.ShiftRequests;
 
 /// <summary>
 /// FR-03.5: Başhekim talebi onaylarsa nöbetleri gerçek anlamda takas eder
-/// ve veritabanına işler.
+/// ve veritabanına işler. Sadece KidemliOnayladi durumundaki talepler başhekime gelir.
 /// </summary>
 public class ApproveShiftRequestHandler(
     IShiftRequestRepository requestRepository,
@@ -24,13 +24,12 @@ public class ApproveShiftRequestHandler(
         if (request == null)
             return Response.RuleViolation<ShiftRequestDto>("Talep bulunamadı.");
 
-        // Sadece asistan onaylamış talepler başhekime gelir
-        if (request.Status != RequestStatus.AsistanOnayladi)
+        // Sadece en kıdemli tarafından onaylanmış talepler başhekime gelir
+        if (request.Status != RequestStatus.KidemliOnayladi)
             return Response.RuleViolation<ShiftRequestDto>("Bu talep başhekim onayı aşamasında değil.");
 
         if (!approve)
         {
-            // Başhekim reddetti
             request.Status = RequestStatus.Reddedildi;
             var rejected = await _requestRepository.SaveAsync(request);
             return Response.Ok(MapToDto(rejected));
@@ -45,7 +44,6 @@ public class ApproveShiftRequestHandler(
         shift.UserId = request.TargetDoctorId;
         await _shiftRepository.SaveAsync(shift);
 
-        // Talebi onaylandı olarak işaretle
         request.Status = RequestStatus.BashekimOnayladi;
         var saved = await _requestRepository.SaveAsync(request);
 

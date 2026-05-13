@@ -9,4 +9,9 @@ public class ShiftRequest
     public int TargetDoctorId { get; set; }
     public int ShiftId { get; set; }
     public RequestStatus Status { get; set; }
+
+    // Navigation properties
+    public User? Requester { get; set; }
+    public User? TargetDoctor { get; set; }
+    public Shift? Shift { get; set; }
 }

@@ -26,11 +26,14 @@ public class CreateUserHandler(IUserRepository repository, UserDtoMapper mapper)
 
         var entity = new ShiftScheduler.Domain.Entities.User
         {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
             Email = request.Email,
-            PasswordHash = request.Password, // TODO: Hashlenmesi gerekiyor
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Role = request.Role,
             SeniorityYear = request.SeniorityYear,
-            DepartmentId = request.DepartmentId
+            DepartmentId = request.DepartmentId,
+            IsSenior = request.IsSenior // İŞTE EKSİK OLAN VE SENİ ÇILDIRTAN O SATIR EKLENDİ!
         };
 
         var savedUser = await _repository.SaveAsync(entity);

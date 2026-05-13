@@ -1,75 +1,101 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    const calendarDays = document.getElementById('calendar-days');
-    const requestModal = document.getElementById('request-modal');
-    const monthSelect = document.getElementById('month-select');
-    const yearSelect = document.getElementById('year-select');
+const loginForm = document.getElementById('login-form');
+let currentUser = null;
+
+// Giriş işlemi
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
     
-    const API_BASE_URL = 'http://localhost:5094/api';
+    const emailInput = loginForm.querySelector('input[type="email"]').value;
+    const passwordInput = loginForm.querySelector('input[type="password"]').value;
 
-    // Test Verileri
-    let shifts = [
-        { shiftDate: "2026-04-01", doctorName: "Mert Yüce", isSenior: true },
-        { shiftDate: "2026-04-02", doctorName: "Dr. Ahmet", isSenior: false }
-    ];
+    try {
+        const response = await fetch('http://localhost:5094/api/Auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailInput, password: passwordInput })
+        });
 
-    // Geçişler
-    document.getElementById('show-register').onclick = (e) => { e.preventDefault(); loginForm.classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); };
-    document.getElementById('show-login').onclick = (e) => { e.preventDefault(); document.getElementById('register-form').classList.add('hidden'); loginForm.classList.remove('hidden'); };
-    document.getElementById('logout-btn').onclick = () => { localStorage.removeItem('token'); location.reload(); };
-    document.getElementById('close-modal').onclick = () => requestModal.classList.add('hidden');
+        const data = await response.json();
+        console.log("Backend'den gelen ham veri:", data); // Hata ayıklama için kritik!
 
-    loginForm.addEventListener('submit', (e) => { e.preventDefault(); localStorage.setItem('token', 'test'); showDashboard(); });
-
-    function showDashboard() { 
-        document.getElementById('login-view').classList.add('hidden'); 
-        document.getElementById('dashboard-view').classList.remove('hidden'); 
-        renderCalendar(shifts); 
-    }
-
-    // Seçim değişince takvimi güncelle
-    monthSelect.onchange = () => renderCalendar(shifts);
-    yearSelect.onchange = () => renderCalendar(shifts);
-
-    document.getElementById('manual-add-btn').onclick = () => {
-        const name = prompt("Doktor:");
-        const day = prompt("Gün (1-31):");
-        const m = parseInt(monthSelect.value) + 1;
-        const y = parseInt(yearSelect.value);
-        if(name && day) { 
-            shifts.push({ shiftDate: `${y}-${m.toString().padStart(2, '0')}-${day.padStart(2, '0')}`, doctorName: name, isSenior: false }); 
-            renderCalendar(shifts); 
-        }
-    };
-
-    function renderCalendar(data) {
-        calendarDays.innerHTML = '';
-        const m = parseInt(monthSelect.value);
-        const y = parseInt(yearSelect.value);
-        const daysInMonth = new Date(y, m + 1, 0).getDate();
-
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dayBox = document.createElement('div');
-            dayBox.className = 'day-box';
-            dayBox.innerHTML = `<div class="day-number">${i < 10 ? '0'+i : i}</div>`;
+        if (response.ok && data.success) {
+            localStorage.setItem('token', data.data.token); 
+            localStorage.setItem('userEmail', emailInput);
             
-            const s = data.find(x => {
-                const d = new Date(x.shiftDate);
-                return d.getDate() === i && d.getMonth() === m && d.getFullYear() === y;
-            });
+            // Backend'den gelen veriyi sisteme kaydediyoruz
+            // Rol bilgisi Enum'dan "Bashekim" veya "1" olarak gelebilir, ikisini de kontrol ediyoruz
+            currentUser = {
+                name: data.data.fullName,
+                role: data.data.role, // "Bashekim", "Asistan" veya "1", "2"
+                isSenior: data.data.isSenior,
+                remainingChangeRequests: data.data.remainingChangeRequests || 0
+            };
+            
+            console.log("Sisteme tanımlanan kullanıcı:", currentUser);
+            
+            loginForm.reset();
+            showDashboard();
+        } else {
+            alert("Hata: " + (data.message || "Giriş başarısız."));
+        }
+    } catch (error) {
+        console.error("Bağlantı hatası:", error);
+        alert("Sunucuya bağlanılamadı.");
+    }
+});
 
-            if(s) {
-                dayBox.style.cursor = 'pointer';
-                const cls = s.isSenior ? 'shift-badge shift-kidemli' : 'shift-badge shift-comez';
-                dayBox.innerHTML += `<div class="${cls}">${s.doctorName}</div>`;
-                dayBox.onclick = () => {
-                    document.getElementById('modal-info').innerText = `${i} ${monthSelect.options[m].text} - ${s.doctorName} nöbeti için değişim talebi gönderilsin mi?`;
-                    requestModal.classList.remove('hidden');
-                };
-            }
-            calendarDays.appendChild(dayBox);
+function showDashboard() {
+    document.getElementById('login-view').classList.add('hidden');
+    document.getElementById('dashboard-view').classList.remove('hidden');
+
+    const btnOnay = document.getElementById('btn-onay-ekrani');
+    const btnNobetEkle = document.getElementById('btn-nobet-ekle'); 
+    const btnDegisim = document.getElementById('btn-nobet-degisimi');
+    const btnTalepler = document.getElementById('btn-taleplerim');
+
+    const userRole = currentUser.role.toString();
+    
+    // Hata ayıklama için: Hüseyin ile girdiğinde konsolda ne yazdığına bakacağız
+    console.log("Yetki kontrolü yapılıyor:", currentUser);
+
+    if (userRole === "Bashekim" || userRole === "1") {
+        if (btnOnay) btnOnay.style.display = 'inline-block';
+        if (btnNobetEkle) btnNobetEkle.style.display = 'none';
+        if (btnDegisim) btnDegisim.style.display = 'none';
+        if (btnTalepler) btnTalepler.style.display = 'none';
+    } 
+    else if (userRole === "Asistan" || userRole === "2") {
+        if (btnOnay) btnOnay.style.display = 'none';
+        if (btnDegisim) btnDegisim.style.display = 'inline-block';
+        if (btnTalepler) btnTalepler.style.display = 'inline-block';
+
+        // Daha esnek bir isSenior kontrolü (Hem string hem boolean destekler)
+        const isSenior = String(currentUser.isSenior).toLowerCase() === 'true';
+
+        if (isSenior) {
+            console.log("Kıdemli asistan yetkisi açıldı!");
+            if (btnNobetEkle) btnNobetEkle.style.display = 'block'; 
+        } else {
+            console.log("Düz asistan yetkisi (Nöbet ekleme kapalı).");
+            if (btnNobetEkle) btnNobetEkle.style.display = 'none'; 
         }
     }
+}
 
-    if (localStorage.getItem('token')) showDashboard();
-});
+// --- OTURUMU KAPATMA İŞLEMİ ---
+const logoutBtn = document.getElementById('logout-btn');
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        // 1. Ceplerimizdeki anahtarları (Token ve Mail) çöpe atıyoruz
+        localStorage.removeItem('token');
+        localStorage.removeItem('userEmail');
+        
+        // 2. Kimliği sıfırlıyoruz
+        currentUser = null;
+
+        // 3. Hastaneden (Dashboard) çıkıp Kapı Önüne (Login) dönüyoruz
+        document.getElementById('dashboard-view').classList.add('hidden');
+        document.getElementById('login-view').classList.remove('hidden');
+    });
+}

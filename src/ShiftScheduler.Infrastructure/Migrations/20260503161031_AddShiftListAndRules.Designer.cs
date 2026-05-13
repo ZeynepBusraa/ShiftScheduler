@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShiftScheduler.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using ShiftScheduler.Infrastructure.Persistence;
 namespace ShiftScheduler.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260503161031_AddShiftListAndRules")]
+    partial class AddShiftListAndRules
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,13 +41,6 @@ namespace ShiftScheduler.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Departments", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Göğüs Cerrahisi"
-                        });
                 });
 
             modelBuilder.Entity("ShiftScheduler.Domain.Entities.Shift", b =>
@@ -84,12 +80,6 @@ namespace ShiftScheduler.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DepartmentId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ListType")
-                        .HasColumnType("int");
-
                     b.Property<int>("Month")
                         .HasColumnType("int");
 
@@ -103,8 +93,6 @@ namespace ShiftScheduler.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DepartmentId");
 
                     b.HasIndex("PreparedByUserId");
 
@@ -133,12 +121,6 @@ namespace ShiftScheduler.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RequesterId");
-
-                    b.HasIndex("ShiftId");
-
-                    b.HasIndex("TargetDoctorId");
-
                     b.ToTable("ShiftRequests");
                 });
 
@@ -161,17 +143,6 @@ namespace ShiftScheduler.Infrastructure.Migrations
                     b.Property<int>("FailedLoginCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsSenior")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("LockoutEnd")
                         .HasColumnType("datetime2");
 
@@ -179,9 +150,6 @@ namespace ShiftScheduler.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("RemainingChangeRequests")
-                        .HasColumnType("int");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
@@ -220,48 +188,13 @@ namespace ShiftScheduler.Infrastructure.Migrations
 
             modelBuilder.Entity("ShiftScheduler.Domain.Entities.ShiftList", b =>
                 {
-                    b.HasOne("ShiftScheduler.Domain.Entities.Department", "Department")
-                        .WithMany()
-                        .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("ShiftScheduler.Domain.Entities.User", "PreparedByUser")
                         .WithMany("PreparedShiftLists")
                         .HasForeignKey("PreparedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Department");
-
                     b.Navigation("PreparedByUser");
-                });
-
-            modelBuilder.Entity("ShiftScheduler.Domain.Entities.ShiftRequest", b =>
-                {
-                    b.HasOne("ShiftScheduler.Domain.Entities.User", "Requester")
-                        .WithMany()
-                        .HasForeignKey("RequesterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ShiftScheduler.Domain.Entities.Shift", "Shift")
-                        .WithMany()
-                        .HasForeignKey("ShiftId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ShiftScheduler.Domain.Entities.User", "TargetDoctor")
-                        .WithMany()
-                        .HasForeignKey("TargetDoctorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Requester");
-
-                    b.Navigation("Shift");
-
-                    b.Navigation("TargetDoctor");
                 });
 
             modelBuilder.Entity("ShiftScheduler.Domain.Entities.User", b =>

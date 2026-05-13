@@ -10,12 +10,15 @@ public class ShiftDtoMapper
 {
     public ShiftDto Map(Shift entity)
     {
+        // Onay durumunu artık doğrudan nöbetten değil, bağlı olduğu Nöbet Listesinden okuyoruz.
+        bool isApproved = entity.ShiftList != null && entity.ShiftList.Status == ApprovalStatus.Onaylandi;
+
         return new ShiftDto(
             entity.Id,
             entity.UserId,
             entity.Date,
             (int)entity.Type,
-            entity.IsApproved
+            isApproved
         );
     }
 
@@ -31,8 +34,8 @@ public class ShiftDtoMapper
             Id = dto.Id,
             UserId = dto.UserId,
             Date = dto.Date,
-            Type = (ShiftType)dto.ShiftType,
-            IsApproved = dto.IsApproved
+            Type = (ShiftType)dto.ShiftType
+            // IsApproved özelliği tablodan kalktığı için artık burada set etmiyoruz.
         };
     }
 }

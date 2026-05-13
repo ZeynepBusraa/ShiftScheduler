@@ -9,8 +9,8 @@ namespace ShiftScheduler.Application.Handlers.ShiftRequests;
 
 /// <summary>
 /// Talep listesini döndürür. Rol bazlı filtreleme:
-/// - Başhekim/Admin → başhekim onayı bekleyen tüm talepler
-/// - Uzman/Asistan  → kendi oluşturduğu + kendisine gelen talepler
+/// - Başhekim → başhekim onayı bekleyen tüm talepler (KidemliOnayladi durumunda)
+/// - Uzman/Asistan → kendi oluşturduğu + kendisine gelen talepler
 /// </summary>
 public class ListShiftRequestsHandler(IShiftRequestRepository requestRepository)
 {
@@ -20,15 +20,15 @@ public class ListShiftRequestsHandler(IShiftRequestRepository requestRepository)
     {
         List<ShiftScheduler.Domain.Entities.ShiftRequest> requests;
 
-        if (userRole == Role.Bashekim || userRole == Role.Admin)
+        if (userRole == Role.Bashekim)
         {
-            // Başhekim onayı bekleyenleri listele
+            // Başhekim: kıdemli tarafından onaylanmış, başhekim onayı bekleyenleri listele
             requests = await _requestRepository.ListPendingChiefApprovalAsync();
         }
         else
         {
             // Kendi oluşturduklarını getir
-            var sent   = await _requestRepository.ListByRequesterAsync(userId);
+            var sent = await _requestRepository.ListByRequesterAsync(userId);
             // Kendisine gelenleri getir
             var received = await _requestRepository.ListPendingForTargetDoctorAsync(userId);
 

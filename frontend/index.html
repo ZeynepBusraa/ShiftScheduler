@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,23 +8,45 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div id="app">
         <div id="login-view" class="view view-center">
             <div class="login-card">
                 <h2 class="logo">Shift<span>Scheduler</span></h2>
                 <form id="login-form">
-                    <div class="input-field"><label>E-posta</label><input type="email" id="email" placeholder="e-posta" required></div>
-                    <div class="input-field"><label>Şifre</label><input type="password" id="password" placeholder="••••••••" required></div>
+                    <div class="input-field"><label>E-posta</label><input type="email" id="email"
+                            placeholder="ornek@hastane.com" required></div>
+                    <div class="input-field"><label>Şifre</label><input type="password" id="password"
+                            placeholder="••••••••" required></div>
                     <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px;">Giriş Yap</button>
-                    <p style="font-size: 0.9rem; margin-top: 15px;">Hesabınız yok mu? <a href="#" id="show-register">Kayıt Ol</a></p>
+                    <p style="font-size: 0.9rem; margin-top: 15px;">Hesabınız yok mu? <a href="#"
+                            id="show-register">Kayıt Ol</a></p>
                 </form>
                 <form id="register-form" class="hidden">
-                    <div class="input-field"><label>Ad Soyad</label><input type="text" id="reg-name" placeholder="Ad Soyad" required></div>
-                    <div class="input-field"><label>E-posta</label><input type="email" id="reg-email" placeholder="eposta" required></div>
-                    <div class="input-field"><label>Şifre</label><input type="password" id="reg-password" placeholder="••••••••" required></div>
-                    <button type="submit" class="btn-success" style="margin-top: 15px;">Kaydol ve Başla</button>
-                    <p style="font-size: 0.9rem; margin-top: 15px;"><a href="#" id="show-login">Geri Dön</a></p>
+                    <div style="display:flex; gap:10px;">
+                        <div class="input-field"><label>Ad</label><input type="text" id="reg-firstname" placeholder="Ad"
+                                required></div>
+                        <div class="input-field"><label>Soyad</label><input type="text" id="reg-lastname"
+                                placeholder="Soyad" required></div>
+                    </div>
+                    <div class="input-field" style="margin-top: 10px;">
+                        <label>Bölüm</label>
+                        <select id="reg-department" required>
+                            <option value="1">Göğüs Cerrahisi</option>
+                            <option value="2">Kalp Damar Cerrahisi</option>
+                            <option value="3">Çocuk Cerrahisi</option>
+                            <option value="4">Radyasyon Onkolojisi</option>
+                        </select>
+                    </div>
+                    <div class="input-field" style="margin-top: 10px;"><label>E-posta</label><input type="email"
+                            id="reg-email" placeholder="eposta@hastane.com" required></div>
+                    <div class="input-field" style="margin-top: 10px;"><label>Şifre</label><input type="password"
+                            id="reg-password" placeholder="••••••••" required></div>
+                    <button type="submit" class="btn-success" style="margin-top: 15px; width: 100%;">Kaydol ve
+                        Başla</button>
+                    <p style="font-size: 0.9rem; margin-top: 15px; text-align: center;"><a href="#" id="show-login">Geri
+                            Dön</a></p>
                 </form>
             </div>
         </div>
@@ -32,7 +55,22 @@
             <nav class="navbar">
                 <div class="nav-brand">Shift<span>Scheduler</span></div>
                 <div style="display:flex; gap:20px; align-items:center;">
-                    <button id="show-requests-btn" class="btn-link">Taleplerim</button>
+                    <div id="bashekim-dept-filter" class="hidden input-field" style="margin: 0; min-width: 200px;">
+                        <select id="global-dept-select" style="padding: 0.4rem; font-size: 0.9rem;">
+                            <option value="1">Göğüs Cerrahisi</option>
+                            <option value="2">Kalp Damar Cerrahisi</option>
+                            <option value="3">Çocuk Cerrahisi</option>
+                            <option value="4">Radyasyon Onkolojisi</option>
+                        </select>
+                    </div>
+
+                    <button id="btn-onay-ekrani" class="btn-success" style="display:none; padding: 0.4rem 1rem; font-size: 0.9rem;">Onay Bekleyenler</button>
+
+                    <button id="btn-nobet-degisimi" class="btn-outline"
+                        style="display:none; padding: 0.4rem 1rem; font-size: 0.9rem;">Nöbet Değişimi <span id="swap-badge"
+                            style="background:red; color:white; border-radius:50%; padding:2px 6px; font-size:0.75rem; margin-left:5px;">2</span></button>
+                    <button id="btn-taleplerim" class="btn-link" style="display:none;">Taleplerim</button>
+                    
                     <button id="logout-btn" class="btn-logout">Oturumu Kapat</button>
                 </div>
             </nav>
@@ -42,49 +80,72 @@
                         <div class="input-field">
                             <label>Yıl</label>
                             <select id="year-select" style="width:110px;">
-                                <option value="2020">2020</option><option value="2021">2021</option>
-                                <option value="2022">2022</option><option value="2023">2023</option>
-                                <option value="2024">2024</option><option value="2025">2025</option>
                                 <option value="2026" selected>2026</option>
                             </select>
                         </div>
                         <div class="input-field">
                             <label>Ay</label>
                             <select id="month-select" style="width:130px;">
-                                <option value="0">Ocak</option><option value="1">Şubat</option>
-                                <option value="2">Mart</option><option value="3" selected>Nisan</option>
-                                <option value="4">Mayıs</option><option value="5">Haziran</option>
-                                <option value="6">Temmuz</option><option value="7">Ağustos</option>
-                                <option value="8">Eylül</option><option value="9">Ekim</option>
-                                <option value="10">Kasım</option><option value="11">Aralık</option>
+                                <option value="3" selected>Nisan</option>
                             </select>
                         </div>
                     </div>
-                    <div style="display:flex; gap:12px;">
-                        <button id="manual-add-btn" class="btn-outline">Shift Ekle</button>
-                        <button id="generate-btn" class="btn-primary">Nöbetleri Yaz</button>
+
+                    <div class="tabs-container" style="display:flex; gap:10px;">
+                        <button id="tab-asistan" class="btn-primary">Asistan Nöbetleri</button>
+                        <button id="tab-uzman" class="btn-outline">Uzman Nöbetleri</button>
+                    </div>
+
+                    <div id="btn-nobet-ekle" style="display:none;">
+                        <div style="display:flex; gap:12px;">
+                            <button id="manual-add-btn" class="btn-outline">Shift Ekle</button>
+                            <button id="generate-btn" class="btn-primary">Nöbetleri Yaz (Oto)</button>
+                            <button id="submit-to-bashekim-btn" class="btn-success">Başhekime Gönder</button>
+                        </div>
                     </div>
                 </div>
+
                 <div class="calendar-wrapper">
                     <div class="calendar-header-days">
-                        <div>PAZARTESİ</div><div>SALI</div><div>ÇARŞAMBA</div><div>PERŞEMBE</div><div>CUMA</div><div>CUMARTESİ</div><div>PAZAR</div>
+                        <div>PAZARTESİ</div>
+                        <div>SALI</div>
+                        <div>ÇARŞAMBA</div>
+                        <div>PERŞEMBE</div>
+                        <div>CUMA</div>
+                        <div>CUMARTESİ</div>
+                        <div>PAZAR</div>
                     </div>
                     <div id="calendar-days" class="days-container"></div>
                 </div>
             </main>
         </div>
 
-        <div id="request-modal" class="modal hidden">
+        <div id="swap-modal" class="modal hidden">
             <div class="modal-content">
-                <h3>Nöbet Değişimi</h3>
-                <p id="modal-info">Talep gönderilsin mi?</p>
+                <h3>Nöbet Değişimi Talebi</h3>
+                <p id="swap-limit-warning"
+                    style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">Sadece kendi
+                    nöbetleriniz için değişim talebi oluşturabilirsiniz. (Kalan Hak: <span
+                        id="modal-swap-left">2</span>)</p>
+                <div class="input-field">
+                    <label>Değiştirmek İstediğiniz Nöbetiniz</label>
+                    <select id="my-shifts-select">
+                        <option value="">Nöbet Seçin</option>
+                    </select>
+                </div>
+                <div class="input-field" style="margin-top: 10px;">
+                    <label>Mazeret / Açıklama</label>
+                    <input type="text" id="swap-reason" placeholder="Kısaca açıklayınız...">
+                </div>
                 <div style="display:flex; gap:12px; margin-top:20px; justify-content:center;">
-                    <button id="send-swap-btn" class="btn-primary">Gönder</button>
-                    <button id="close-modal" class="btn-link">Vazgeç</button>
+                    <button id="submit-swap-btn" class="btn-primary">Talep Gönder</button>
+                    <button id="close-swap-modal" class="btn-link">İptal</button>
                 </div>
             </div>
         </div>
+
     </div>
     <script src="app.js"></script>
 </body>
+
 </html>

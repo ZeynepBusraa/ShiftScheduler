@@ -58,7 +58,7 @@ public class ShiftRequestsController(
 
     /// <summary>FR-03.5: Başhekim son onayı verir; onaylanırsa nöbetler takas edilir.</summary>
     [HttpPut("{id}/approve")]
-    [Authorize(Roles = "Bashekim, Admin")]
+    [Authorize(Roles = "Bashekim")]
     public async Task<ResponsePayload<ShiftRequestDto>> Approve(
         [FromRoute] int id,
         [FromBody] bool approve)

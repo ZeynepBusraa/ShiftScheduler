@@ -27,6 +27,12 @@ public static class DependencyInjection
         services.AddScoped<RespondToShiftRequestHandler>();
         services.AddScoped<ApproveShiftRequestHandler>();
 
+        // Handlers - ShiftLists (nöbet listesi onay akışı)
+        services.AddScoped<ShiftScheduler.Application.Handlers.ShiftLists.ListShiftListsHandler>();
+        services.AddScoped<ShiftScheduler.Application.Handlers.ShiftLists.SubmitShiftListHandler>();
+        services.AddScoped<ShiftScheduler.Application.Handlers.ShiftLists.ApproveShiftListHandler>();
+
+
         // Handlers - Users & Auth
         services.AddScoped<ShiftScheduler.Application.Handlers.Auth.LoginUserHandler>();
         services.AddScoped<ShiftScheduler.Application.Handlers.Users.CreateUserHandler>();

@@ -2,11 +2,10 @@ using ShiftScheduler.Application;
 using ShiftScheduler.Infrastructure;
 using ShiftScheduler.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using System.Text;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,9 +18,10 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader());
 });
 
-// Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+
+// --- YENİ NESİL .NET 9 API DOKÜMANTASYONU ---
+builder.Services.AddOpenApi(); 
 
 // JWT Authentication Setup
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -57,24 +57,38 @@ var app = builder.Build();
 // --- 2. CORS'U AKTİF ET ---
 app.UseCors("AllowAll");
 
-// Apply pending migrations automatically on startup
+// Otomatik Veritabanı Güncellemesi
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // --- YENİ NESİL ARAYÜZÜ (SCALAR) AKTİF ET ---
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
-// Yerel testlerde sorun çıkmaması için redirection'ı geçici olarak pasife alabilirsin
-// app.UseHttpsRedirection();
+// --- 3. FRONTEND STATIC FILES ---
+var frontendPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "frontend");
+if (Directory.Exists(frontendPath))
+{
+    app.UseDefaultFiles(new DefaultFilesOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Path.GetFullPath(frontendPath)),
+        RequestPath = ""
+    });
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Path.GetFullPath(frontendPath)),
+        RequestPath = ""
+    });
+}
 
-app.UseAuthentication(); // JWT token doğrulama
-app.UseAuthorization();  // Rol/politika kontrolü
+app.UseAuthentication(); 
+app.UseAuthorization();  
 app.MapControllers();
 
 app.Run();

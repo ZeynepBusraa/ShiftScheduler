@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ShiftScheduler.Application.Common;
 using ShiftScheduler.Application.DTOs;
@@ -8,6 +9,12 @@ using ShiftScheduler.Domain.Enums;
 
 namespace ShiftScheduler.Application.Handlers.Shifts;
 
+/// <summary>
+/// Nöbet listesini getirir. Rol bazlı görünüm:
+/// - Başhekim: Tüm bölümlerin tüm nöbetleri
+/// - Asistan: Kendi bölümünün asistan nöbetleri + aynı bölümün uzman nöbetleri (çapraz görünüm)
+/// - Uzman: Kendi bölümünün uzman nöbetleri + aynı bölümün asistan nöbetleri (çapraz görünüm)
+/// </summary>
 public class ListShiftsHandler(IShiftRepository repository, ShiftDtoMapper mapper)
 {
     private readonly IShiftRepository _repository = repository;
@@ -17,22 +24,19 @@ public class ListShiftsHandler(IShiftRepository repository, ShiftDtoMapper mappe
     {
         List<ShiftScheduler.Domain.Entities.Shift> shifts;
 
-        // Başhekim veya Admin ise tüm listeyi görebilir
-        if (userRole == Role.Bashekim || userRole == Role.Admin)
+        if (userRole == Role.Bashekim)
         {
+            // Başhekim tüm bölümlerin tüm nöbetlerini görebilir
             shifts = await _repository.ListAllAsync();
         }
         else
         {
-            // Uzman ve Asistanlar sadece kendi bölümlerinin listesini görebilir
-            if (departmentId.HasValue)
-            {
-                shifts = await _repository.ListByDepartmentAsync(departmentId.Value);
-            }
-            else
-            {
-                shifts = new List<ShiftScheduler.Domain.Entities.Shift>();
-            }
+            if (!departmentId.HasValue)
+                return Response.Ok(new List<ShiftDto>());
+
+            // Asistan ve Uzman: kendi bölümünün TÜM nöbetlerini görür (hem asistan hem uzman)
+            // SEC-02: Sadece kendi bölümü — diğer bölümler görünmez
+            shifts = await _repository.ListByDepartmentAsync(departmentId.Value);
         }
 
         return Response.Ok(_mapper.MapList(shifts));

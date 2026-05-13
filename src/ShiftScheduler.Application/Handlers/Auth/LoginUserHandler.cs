@@ -42,8 +42,10 @@ public class LoginUserHandler(IUserRepository userRepository, ITokenService toke
             };
         }
 
-        // Şifre kontrolü
-        if (user.PasswordHash != request.Password)
+        // YENİ KOD: Şifre kontrolü - BCrypt ile hash çözümü ve doğrulaması yapıyoruz
+        bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+
+        if (!isPasswordValid)
         {
             // FR-01.2: Başarısız deneme sayacını artır
             user.FailedLoginCount++;
@@ -79,9 +81,19 @@ public class LoginUserHandler(IUserRepository userRepository, ITokenService toke
         await _userRepository.SaveAsync(user);
 
         var token = _tokenService.GenerateToken(user);
-        var response = new LoginResponse(token, user.Id, user.Role.ToString(), user.DepartmentId);
+        
+        // YENİ: LoginResponse record'una uygun şekilde tüm UI gereksinimlerini dolduruyoruz
+        var response = new LoginResponse(
+            Token: token,
+            UserId: user.Id,
+            FullName: user.FullName, // Veritabanında FirstName ve LastName olarak ayırdıysan: $"{user.FirstName} {user.LastName}"
+            Role: user.Role.ToString(),
+            IsSenior: user.IsSenior,
+            DepartmentId: user.DepartmentId,
+            DepartmentName: user.Department?.Name, 
+            RemainingChangeRequests: user.RemainingChangeRequests
+        );
 
-        return Response.Ok(response);
+        return Response.Ok(response); // Uygulamanızın mevcut Response.Ok metoduyla dönüyoruz
     }
 }
-

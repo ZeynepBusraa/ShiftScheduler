@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ShiftScheduler.Application.Repositories;
 using ShiftScheduler.Domain.Entities;
+using ShiftScheduler.Domain.Enums;
 using ShiftScheduler.Infrastructure.Persistence;
 
 namespace ShiftScheduler.Infrastructure.Repositories;
@@ -19,17 +21,34 @@ public class UserRepository(AppDbContext dbContext) : IUserRepository
 
     public Task<User?> FindByEmailAsync(string email)
     {
-        return _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        return _dbContext.Users
+            .Include(u => u.Department)
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public Task<User?> FindByIdAsync(int id)
     {
-        return _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+        return _dbContext.Users
+            .Include(u => u.Department)
+            .FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public Task<List<User>> ListAllAsync()
     {
-        return _dbContext.Users.ToListAsync();
+        return _dbContext.Users
+            .Include(u => u.Department)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Belirli bir bölüm ve roldeki tüm kullanıcıları getirir.
+    /// En kıdemli kontrolü ve nöbet algoritması için kullanılır.
+    /// </summary>
+    public Task<List<User>> ListByDepartmentAndRoleAsync(int departmentId, Role role)
+    {
+        return _dbContext.Users
+            .Where(u => u.DepartmentId == departmentId && u.Role == role)
+            .ToListAsync();
     }
 
     public async Task<User> SaveAsync(User entity)
@@ -42,7 +61,7 @@ public class UserRepository(AppDbContext dbContext) : IUserRepository
         {
             _dbContext.Users.Update(entity);
         }
-        
+
         await _dbContext.SaveChangesAsync();
         return entity;
     }

@@ -27,7 +27,8 @@ public class ShiftService(
     public Task<ResponsePayload<ShiftDto>> SaveAsync(ShiftDto dto)
         => _saveHandler.HandleAsync(dto);
 
-    public Task<ResponsePayload<GenerateShiftsResult>> GenerateAsync(GenerateShiftsRequest request)
-        => _generateHandler.HandleAsync(request);
+    public Task<ResponsePayload<GenerateShiftsResult>> GenerateAsync(GenerateShiftsRequest request, int callerUserId)
+        => _generateHandler.HandleAsync(request, callerUserId);
+
 }
 

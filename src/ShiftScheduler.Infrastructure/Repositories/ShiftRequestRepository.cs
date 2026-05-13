@@ -28,7 +28,7 @@ public class ShiftRequestRepository(AppDbContext dbContext) : IShiftRequestRepos
 
     public Task<List<ShiftRequest>> ListPendingChiefApprovalAsync()
         => _dbContext.ShiftRequests
-            .Where(r => r.Status == RequestStatus.AsistanOnayladi)
+            .Where(r => r.Status == RequestStatus.KidemliOnayladi)
             .ToListAsync();
 
     public async Task<ShiftRequest> SaveAsync(ShiftRequest entity)
